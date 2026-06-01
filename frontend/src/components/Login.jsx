@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth, googleProvider } from '../firebase';
-import { loginMockup } from '../assets/images.js';
-
 export default function Login({ setAuthToken }) {
   const navigate = useNavigate();
   const [role, setRole] = useState(null); // 'student' or 'admin'
@@ -86,11 +84,11 @@ export default function Login({ setAuthToken }) {
         justifyContent: 'center',
         alignItems: 'center',
         fontFamily: "'Outfit', sans-serif",
-        overflow: 'hidden'
+        overflow: 'visible'
       }}>
         <div className="role-selection-card" style={{
-          display: 'flex', width: '92%', maxWidth: '1200px', height: '80vh',
-          borderRadius: '48px', overflow: 'hidden',
+          display: 'flex', width: '92%', maxWidth: '600px', height: 'auto', minHeight: '60vh',
+          borderRadius: '48px', overflow: 'visible',
           background: 'rgba(255, 250, 245, 0.85)',
           backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)',
           border: '1px solid rgba(255, 255, 255, 0.5)',
@@ -159,29 +157,7 @@ export default function Login({ setAuthToken }) {
             </div>
           </div>
 
-          {/* Right Side: Image */}
-          <div className="login-image-side" style={{
-            flex: 1, 
-            position: 'relative',
-            borderRadius: '0 48px 48px 0', 
-            overflow: 'hidden',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#fff'
-          }}>
-            <img 
-              src={loginMockup} 
-              alt="MyAlly Mockup" 
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: loginMockup ? 'block' : 'none'
-              }} 
-            />
-            {!loginMockup && <div style={{ color: '#ccc' }}>Loading preview...</div>}
-          </div>
+
         </div>
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap');
@@ -248,7 +224,7 @@ export default function Login({ setAuthToken }) {
       alignItems: 'center', fontFamily: "'Outfit', sans-serif"
     }}>
       <div className="auth-card" style={{
-        width: '100%', maxWidth: '450px', padding: '60px 40px',
+        width: '90%', maxWidth: '450px', padding: '60px 40px',
         borderRadius: '40px', background: 'rgba(255, 250, 245, 0.98)',
         textAlign: 'center', position: 'relative',
         boxShadow: '0 30px 60px -12px rgba(0,0,0,0.1)',

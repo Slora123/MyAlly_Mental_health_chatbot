@@ -60,11 +60,15 @@ export default function Onboarding({ authToken }) {
       }}>
         <style>{`
           @media (max-width: 600px) {
+            .onboarding-page {
+              align-items: flex-start !important;
+              padding: 20px 15px !important;
+            }
             .onboarding-card {
               padding: 30px 20px !important;
-              border-radius: 0 !important;
-              height: 100vh;
-              overflow-y: auto;
+              border-radius: 32px !important;
+              height: auto !important;
+              overflow-y: visible !important;
             }
             .onboarding-card h2 {
               font-size: 1.8rem !important;
