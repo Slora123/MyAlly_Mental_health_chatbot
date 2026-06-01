@@ -7,7 +7,7 @@ import { botDefault, botFemale, botMale } from '../assets/images.js';
 const BOT_AVATAR_OPTIONS = [
   { key: 'female', img: botFemale },
   { key: 'male',   img: botMale   },
-  { key: 'default', img: botDefault },
+  { key: 'default', img: '/logo.png' },
 ];
 const USER_AVATAR_OPTIONS = [
   { key: 'female', img: botFemale },
@@ -24,7 +24,7 @@ export default function Header({ theme, onSetTheme, userEmail, authToken, onLogo
   const t = THEMES[theme];
 
   // Resolve bot avatar
-  const botImg = myAllyAvatar || botDefault;
+  const botImg = myAllyAvatar || '/logo.png';
 
   // Get initials for user circle if no custom avatar
   const initials = userEmail ? userEmail.charAt(0).toUpperCase() : '?';

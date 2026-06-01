@@ -15,6 +15,15 @@
   filter: drop-shadow(0 8px 16px rgba(0,0,0,0.12));
 }
 
+.logoHero {
+  width: 96px;
+  height: 96px;
+  border-radius: 28px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.1);
+  animation: float-avatar 3s ease-in-out infinite;
+  object-fit: cover;
+}
+
 .title {
   font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
   font-size: 24px;

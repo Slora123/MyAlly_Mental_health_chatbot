@@ -11,7 +11,7 @@ const CHIPS = [
 export default function WelcomeBanner({ onChipClick }) {
   return (
     <div className={styles.banner} role="region" aria-label="Welcome message">
-      <div className={styles.emojiHero} aria-hidden="true">😊</div>
+      <img src="/logo.png" alt="MyAlly Logo" className={styles.logoHero} />
       <h3 className={styles.title}>Hey! I'm MyAlly 👋</h3>
       <p className={styles.subtitle}>
         Your chill mental-health companion.

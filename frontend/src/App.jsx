@@ -15,7 +15,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { botDefault, botFemale, botMale } from './assets/images.js';
 
 // Map stored key strings to actual image data URLs
-const AVATAR_MAP = { female: botFemale, male: botMale, default: botDefault };
+const AVATAR_MAP = { female: botFemale, male: botMale, default: '/logo.png' };
 function resolveAvatar(value) {
   if (!value) return null;
   // If it's a known key, resolve it
@@ -313,11 +313,11 @@ function ChatApp({ authToken, setAuthToken }) {
                 item={msg} 
                 theme={theme} 
                 animate={i === messages.length - 1} 
-                botImg={resolveAvatar(myAllyAvatar) || (userProfile?.gender?.toLowerCase() === 'female' ? botFemale : (userProfile?.gender?.toLowerCase() === 'male' ? botMale : botDefault))}
+                botImg={resolveAvatar(myAllyAvatar) || (userProfile?.gender?.toLowerCase() === 'female' ? botFemale : (userProfile?.gender?.toLowerCase() === 'male' ? botMale : '/logo.png'))}
                 userAvatar={resolveAvatar(userAvatar)}
               />
             ))}
-            {isTyping && <TypingIndicator theme={theme} botImg={resolveAvatar(myAllyAvatar) || (userProfile?.gender?.toLowerCase() === 'female' ? botFemale : (userProfile?.gender?.toLowerCase() === 'male' ? botMale : botDefault))} />}
+            {isTyping && <TypingIndicator theme={theme} botImg={resolveAvatar(myAllyAvatar) || (userProfile?.gender?.toLowerCase() === 'female' ? botFemale : (userProfile?.gender?.toLowerCase() === 'male' ? botMale : '/logo.png'))} />}
 
           </main>
           <footer className="input-area">
