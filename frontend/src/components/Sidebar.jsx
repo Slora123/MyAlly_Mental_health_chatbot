@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiFetch } from '../api';
 
 export default function Sidebar({ authToken, currentSessionId, onSelectSession }) {
   const [sessions, setSessions] = useState([]);
@@ -12,7 +13,7 @@ export default function Sidebar({ authToken, currentSessionId, onSelectSession }
 
   const fetchSessions = async (retries = 2) => {
     try {
-      const res = await fetch('/api/chats', {
+      const res = await apiFetch('/api/chats', {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
       if (res.status === 401 && retries > 0) {

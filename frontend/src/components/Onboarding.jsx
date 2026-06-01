@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from '../api';
 
 export default function Onboarding({ authToken }) {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export default function Onboarding({ authToken }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/user/onboarding', {
+      const res = await apiFetch('/api/user/onboarding', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

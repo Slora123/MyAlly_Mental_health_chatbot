@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { apiFetch } from './api';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import MessageBubble from './components/MessageBubble';
@@ -149,7 +150,7 @@ function ChatApp({ authToken, setAuthToken }) {
   useEffect(() => {
     if (authToken) {
       // Fetch user profile to get email and saved avatar keys
-      fetch('/api/user/profile', {
+      apiFetch('/api/user/profile', {
         headers: { 'Authorization': `Bearer ${authToken}` }
       }).then(r => r.ok ? r.json() : null)
         .then(profile => { 
@@ -166,7 +167,7 @@ function ChatApp({ authToken, setAuthToken }) {
 
       const fetchAllHistory = async () => {
         try {
-          const res = await fetch('/api/chats/all', {
+          const res = await apiFetch('/api/chats/all', {
             headers: { 'Authorization': `Bearer ${authToken}` }
           });
           if (res.status === 401) {
@@ -219,7 +220,7 @@ function ChatApp({ authToken, setAuthToken }) {
     if (detected) setTheme(detected);
 
     try {
-      const response = await fetch('/chat', {
+      const response = await apiFetch('/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -262,7 +263,7 @@ function ChatApp({ authToken, setAuthToken }) {
   const handleSaveProfile = async (updates) => {
     if (!authToken) return;
     try {
-      const res = await fetch('/api/user/onboarding', {
+      const res = await apiFetch('/api/user/onboarding', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

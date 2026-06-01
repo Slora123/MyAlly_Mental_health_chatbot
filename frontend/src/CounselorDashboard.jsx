@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiFetch } from './api';
 import './CounselorDashboard.css';
 
 export default function CounselorDashboard() {
@@ -8,7 +9,7 @@ export default function CounselorDashboard() {
 
   const fetchAlerts = async () => {
     try {
-      const response = await fetch('/api/admin/alerts');
+      const response = await apiFetch('/api/admin/alerts');
       const data = await response.json();
       setAlerts(data.alerts || []);
     } catch (err) {
@@ -27,7 +28,7 @@ export default function CounselorDashboard() {
 
   const handleResolve = async (id) => {
     try {
-      await fetch(`/api/admin/resolve/${id}`, { method: 'POST' });
+      await apiFetch(`/api/admin/resolve/${id}`, { method: 'POST' });
       fetchAlerts();
       if (selectedAlert?.id === id) setSelectedAlert(null);
     } catch (err) {
