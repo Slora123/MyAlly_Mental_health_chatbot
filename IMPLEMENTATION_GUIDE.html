@@ -1,0 +1,952 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Empathetic Student Mental-Health Chatbot: Full Implementation Guide</title>
+  <style>
+    :root {
+      --bg: #f4efe7;
+      --panel: #fffaf4;
+      --panel-2: #f8f2ea;
+      --text: #1f2328;
+      --muted: #5c6670;
+      --accent: #0f766e;
+      --border: #d9cfc1;
+      --code: #fff7ed;
+      --warn: #7c2d12;
+      --good: #14532d;
+      --shadow: 0 12px 28px rgba(32, 28, 22, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(15, 118, 110, 0.11), transparent 30%),
+        radial-gradient(circle at top left, rgba(124, 58, 237, 0.09), transparent 28%),
+        linear-gradient(180deg, #faf6ef 0%, var(--bg) 100%);
+      line-height: 1.65;
+    }
+
+    .wrap { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 64px; }
+    header, section, nav { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+    header { padding: 32px; background: linear-gradient(135deg, rgba(15, 118, 110, 0.10), rgba(124, 58, 237, 0.10)); }
+    section { padding: 28px; }
+    h1, h2, h3, h4 { line-height: 1.2; margin: 0 0 14px; font-weight: 700; }
+    h1 { font-size: clamp(2rem, 5vw, 3.3rem); max-width: 14ch; }
+    h2 { font-size: 1.75rem; margin-top: 28px; }
+    h3 { font-size: 1.25rem; margin-top: 20px; }
+    p, li, td, th { font-size: 1.01rem; }
+    .lead { font-size: 1.12rem; max-width: 75ch; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: 280px 1fr; gap: 22px; margin-top: 22px; }
+    nav { position: sticky; top: 16px; align-self: start; padding: 18px 18px 14px; }
+    nav h2 { font-size: 1rem; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+    nav ol { margin: 0; padding-left: 18px; }
+    nav li { margin: 8px 0; }
+    nav a { color: var(--text); text-decoration: none; }
+    nav a:hover { color: var(--accent); }
+    main { display: grid; gap: 20px; }
+    .card-grid, .two-col { display: grid; gap: 14px; }
+    .card-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 14px; }
+    .two-col { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+    .card { background: var(--panel-2); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+    .pill { display: inline-block; padding: 6px 10px; border-radius: 999px; background: rgba(15, 118, 110, 0.10); color: var(--accent); font-size: 0.92rem; margin: 4px 8px 0 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 14px; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
+    th, td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    th { background: #f1e7db; }
+    code, pre { font-family: "Cascadia Code", Consolas, "Courier New", monospace; font-size: 0.95rem; }
+    code { background: rgba(124, 58, 237, 0.08); padding: 0.1rem 0.35rem; border-radius: 6px; }
+    pre { background: var(--code); border: 1px solid #efd9bf; border-radius: 16px; padding: 16px; overflow: auto; line-height: 1.5; }
+    .note, .warning, .success { border-left: 5px solid; padding: 14px 16px; border-radius: 12px; margin: 14px 0; }
+    .note { border-color: var(--accent); background: rgba(15, 118, 110, 0.08); }
+    .warning { border-color: #b45309; background: rgba(251, 191, 36, 0.16); color: var(--warn); }
+    .success { border-color: #15803d; background: rgba(74, 222, 128, 0.12); color: var(--good); }
+    footer { margin-top: 22px; color: var(--muted); font-size: 0.95rem; }
+    @media (max-width: 920px) { .grid { grid-template-columns: 1fr; } nav { position: static; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <p class="pill">Detailed Build Guide</p>
+      <p class="pill">RAG + Empathy + Safety</p>
+      <p class="pill">Three Dataset Design</p>
+      <h1>Empathetic Student Mental-Health Chatbot From Scratch</h1>
+      <p class="lead">
+        This guide explains how to design and implement the app from scratch using the three datasets already present in the project:
+        <code>dataset reddit</code>, <code>empatheticdialogues</code>, and <code>mhqa-main</code>. It is intentionally implementation-oriented but not a full code dump. The goal is to help you make correct design decisions, structure the project cleanly, and build a RAG pipeline that is empathetic, grounded, and safer for student support use cases.
+      </p>
+      <div class="note">
+        <strong>Core principle:</strong> do not use one mixed retrieval pool for everything. Treat empathy and factual knowledge as different jobs. Your chatbot should retrieve <em>how to respond</em> from empathy datasets and <em>what factual content may help</em> from MHQA.
+      </div>
+    </header>
+
+    <div class="grid">
+      <nav>
+        <h2>Contents</h2>
+        <ol>
+          <li><a href="#scope">Product Scope</a></li>
+          <li><a href="#stack">Recommended Stack</a></li>
+          <li><a href="#architecture">System Architecture</a></li>
+          <li><a href="#folders">Project Structure</a></li>
+          <li><a href="#datasets">Understanding the 3 Datasets</a></li>
+          <li><a href="#processing">Dataset Processing Pipeline</a></li>
+          <li><a href="#schema">Unified Document Schema</a></li>
+          <li><a href="#indexing">Embeddings and Vector Indexing</a></li>
+          <li><a href="#retrieval">Retrieval Strategy</a></li>
+          <li><a href="#prompting">Prompt and Generation Design</a></li>
+          <li><a href="#safety">Safety Layer</a></li>
+          <li><a href="#app">App Design</a></li>
+          <li><a href="#memory">Conversation Memory</a></li>
+          <li><a href="#evaluation">Evaluation Plan</a></li>
+          <li><a href="#deployment">Deployment Roadmap</a></li>
+          <li><a href="#phases">Implementation Phases</a></li>
+          <li><a href="#pitfalls">Common Pitfalls</a></li>
+          <li><a href="#sources">Primary Sources</a></li>
+        </ol>
+      </nav>
+
+      <main>
+        <section id="scope">
+          <h2>1. Product Scope</h2>
+          <p>
+            Before choosing libraries or writing code, define the exact role of the chatbot. This system is best positioned as an <strong>empathetic support and psychoeducation assistant for students</strong>, not as a therapist, diagnostician, or crisis responder.
+          </p>
+          <div class="two-col">
+            <div class="card">
+              <h3>What the app should do</h3>
+              <ul>
+                <li>Understand student distress such as stress, loneliness, confusion, burnout, homesickness, and emotional overwhelm.</li>
+                <li>Reply in an emotionally validating way.</li>
+                <li>Use grounded knowledge when the student asks factual mental-health questions.</li>
+                <li>Offer one or two practical, low-risk next steps.</li>
+                <li>Escalate to safer language when the message looks high-risk.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>What the app should not do</h3>
+              <ul>
+                <li>Diagnose depression, anxiety, trauma, OCD, or any other condition.</li>
+                <li>Recommend medication changes.</li>
+                <li>Pretend to replace campus counseling, therapy, or emergency services.</li>
+                <li>Use raw internet-style replies as-is.</li>
+                <li>Answer a crisis message with a normal friendly chat response.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="warning">
+            <strong>Important design boundary:</strong> MHQA gives grounded mental-health Q/A style knowledge, but it is still not a therapy manual. Use it to support psychoeducation, not to make clinical judgments.
+          </div>
+        </section>
+
+        <section id="stack">
+          <h2>2. Recommended Stack</h2>
+          <p>
+            This stack is chosen to fit your current codebase and the size of the local datasets. The recommendations below combine the current project state with official documentation for the main framework components.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Layer</th>
+                <th>Recommendation</th>
+                <th>Why it fits this project</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Language</td><td><code>Python</code></td><td>Best fit for data processing, embeddings, retrieval, and current repository code.</td></tr>
+              <tr><td>Tabular processing</td><td><code>pandas</code></td><td>Simple for CSV inspection, cleaning, filtering, and record transformation.</td></tr>
+              <tr><td>Embeddings</td><td><code>sentence-transformers</code></td><td>Designed for semantic search and embedding-based retrieval workflows.</td></tr>
+              <tr><td>Vector database</td><td><code>chromadb</code></td><td>Easy local persistence for development. Chroma docs support <code>PersistentClient</code> for local development and recommend server-backed Chroma for production.</td></tr>
+              <tr><td>LLM access</td><td><code>huggingface_hub.InferenceClient</code></td><td>Matches your current app design and supports chat-style inference through Hugging Face.</td></tr>
+              <tr><td>Prototype UI</td><td><code>Gradio</code></td><td><code>gr.ChatInterface</code> is the fastest route to a working, testable chat UI.</td></tr>
+              <tr><td>Production backend</td><td><code>FastAPI</code> later</td><td>Recommended as a future upgrade if the project moves beyond local demo use.</td></tr>
+              <tr><td>Config</td><td><code>python-dotenv</code></td><td>Keeps tokens and environment-specific settings out of code.</td></tr>
+              <tr><td>Logging</td><td><code>JSONL</code> first</td><td>Simple, inspectable, and enough for early-stage experiments.</td></tr>
+            </tbody>
+          </table>
+          <div class="note">
+            <strong>Suggested path:</strong> prototype in Gradio first, validate retrieval quality and safety, then move to FastAPI plus a custom frontend only after the RAG behavior is stable.
+          </div>
+          <h3>Libraries to install</h3>
+          <pre><code>pandas
+chromadb
+sentence-transformers
+torch
+huggingface_hub
+gradio
+python-dotenv</code></pre>
+        </section>
+
+        <section id="architecture">
+          <h2>3. System Architecture</h2>
+          <p>
+            The architecture should explicitly separate data preparation, retrieval, generation, and safety checks. A clear separation will save you from mixing concerns later.
+          </p>
+          <h3>RAG architecture at a glance</h3>
+          <p>
+            Yes, this app is designed as a real RAG system. The retrieval architecture has two distinct layers:
+          </p>
+          <ul>
+            <li><strong>Empathy RAG layer:</strong> retrieves supportive dialogue patterns from Reddit empathy data and EmpatheticDialogues.</li>
+            <li><strong>Knowledge RAG layer:</strong> retrieves grounded mental-health knowledge from MHQA.</li>
+          </ul>
+          <p>
+            These two layers are kept separate on purpose. The model first learns <em>how to respond</em> from empathy retrieval and then adds <em>what information may help</em> from knowledge retrieval.
+          </p>
+
+          <h3>Index-time RAG structure</h3>
+          <pre><code>dataset reddit
+    -> clean text
+    -> remove level 0 rows
+    -> build empathy documents
+
+empatheticdialogues
+    -> rebuild dialogue pairs
+    -> attach emotion and prompt metadata
+    -> build empathy documents
+
+mhqa-main/datasets
+    -> normalize question-answer fields
+    -> keep valid rows
+    -> build knowledge documents
+
+all processed documents
+    -> embed with sentence-transformers
+    -> store in Chroma
+       - student_support_empathy
+       - student_support_knowledge</code></pre>
+
+          <h3>Query-time RAG structure</h3>
+          <pre><code>user message
+    -> safety check
+    -> intent/router check
+    -> retrieve empathy examples
+    -> retrieve MHQA knowledge if needed
+    -> rerank and filter
+    -> assemble prompt
+    -> generate response
+    -> log retrieved ids and output</code></pre>
+
+          <table>
+            <thead>
+              <tr>
+                <th>RAG component</th>
+                <th>Role in the app</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Empathy collection</td><td>Controls warmth, validation style, reflective questioning, and emotionally appropriate tone.</td></tr>
+              <tr><td>Knowledge collection</td><td>Controls grounded psychoeducational content for questions about symptoms, coping, therapy, or disorders.</td></tr>
+              <tr><td>Router</td><td>Decides whether to use empathy only, knowledge only, both, or switch to a crisis path.</td></tr>
+              <tr><td>Prompt builder</td><td>Keeps empathy context and knowledge context separate so the model uses each for the correct purpose.</td></tr>
+              <tr><td>Generator</td><td>Produces the final student-facing answer using retrieved context plus safety constraints.</td></tr>
+            </tbody>
+          </table>
+
+          <pre><code>Raw datasets
+  - dataset reddit
+  - empatheticdialogues
+  - mhqa-main/datasets
+
+        |
+        v
+Data profiling and cleaning
+  - normalize text
+  - filter poor samples
+  - standardize fields
+  - deduplicate
+
+        |
+        v
+Create two document stores
+  - empathy documents
+  - knowledge documents
+
+        |
+        v
+Embed documents with sentence-transformers
+
+        |
+        v
+Store in Chroma collections
+  - student_support_empathy
+  - student_support_knowledge
+
+        |
+        v
+User message enters app
+  - risk check
+  - intent check
+  - retrieve empathy examples
+  - retrieve MHQA knowledge if needed
+
+        |
+        v
+Prompt assembly
+  - system instructions
+  - recent history
+  - empathy context
+  - knowledge context
+  - safety constraints
+
+        |
+        v
+LLM generation
+
+        |
+        v
+Post-response logging and evaluation</code></pre>
+          <div class="success">
+            <strong>Best mental model:</strong> empathy retrieval controls tone and response pattern, while knowledge retrieval controls factual grounding.
+          </div>
+        </section>
+
+        <section id="folders">
+          <h2>4. Project Structure</h2>
+          <p>
+            Even if you keep the current flat repository for now, you should think in terms of separate modules. A good structure from scratch would look like this:
+          </p>
+          <pre><code>project_root/
+  data/
+    raw/
+      dataset reddit/
+      empatheticdialogues/
+      mhqa-main/
+    processed/
+      empathy_documents.jsonl
+      knowledge_documents.jsonl
+  src/
+    data_prep/
+      profile_data.py
+      build_empathy_docs.py
+      build_knowledge_docs.py
+    rag/
+      embeddings.py
+      index_builder.py
+      retriever.py
+      router.py
+      prompt_builder.py
+      safety.py
+    app/
+      ui.py
+      service.py
+      logging.py
+  tests/
+    test_processing.py
+    test_retrieval.py
+    test_safety.py
+  .env
+  requirements.txt</code></pre>
+        </section>
+
+        <section id="datasets">
+          <h2>5. Understanding the 3 Datasets</h2>
+          <p>
+            The most important design decision is to understand what each dataset is actually good for. They are not interchangeable.
+          </p>
+          <div class="card-grid">
+            <div class="card">
+              <h3>Dataset 1: Reddit empathy annotations</h3>
+              <p><strong>Folder:</strong> <code>dataset reddit</code></p>
+              <p><strong>Files:</strong> <code>emotional-reactions-reddit.csv</code>, <code>interpretations-reddit.csv</code>, <code>explorations-reddit.csv</code></p>
+              <p><strong>Observed fields:</strong> <code>sp_id</code>, <code>rp_id</code>, <code>seeker_post</code>, <code>response_post</code>, <code>level</code>, <code>rationales</code></p>
+              <p><strong>Use for:</strong> empathy mechanism examples and supportive response style.</p>
+            </div>
+            <div class="card">
+              <h3>Dataset 2: EmpatheticDialogues</h3>
+              <p><strong>Folder:</strong> <code>empatheticdialogues</code></p>
+              <p><strong>Files:</strong> <code>train.csv</code>, <code>valid.csv</code>, <code>test.csv</code></p>
+              <p><strong>Observed fields:</strong> <code>conv_id</code>, <code>utterance_idx</code>, <code>context</code>, <code>prompt</code>, <code>speaker_idx</code>, <code>utterance</code>, <code>selfeval</code>, <code>tags</code></p>
+              <p><strong>Use for:</strong> natural empathetic dialogue flow and emotion-conditioned replies.</p>
+            </div>
+            <div class="card">
+              <h3>Dataset 3: MHQA</h3>
+              <p><strong>Folder:</strong> <code>mhqa-main\datasets</code></p>
+              <p><strong>Files:</strong> <code>mhqa.csv</code>, <code>mhqa-b.csv</code></p>
+              <p><strong>Observed fields:</strong> topic, type, question, options, correct answer, and validity flags in some files.</p>
+              <p><strong>Use for:</strong> factual mental-health grounding and psychoeducational answers.</p>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Dataset</th>
+                <th>Main contribution</th>
+                <th>Should not be used for</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Reddit empathy</td><td>Examples of emotional reaction, interpretation, and exploration</td><td>Unfiltered direct answer generation</td></tr>
+              <tr><td>EmpatheticDialogues</td><td>Conversation shape, emotion labels, gentle follow-up style</td><td>Clinical facts or diagnosis-like claims</td></tr>
+              <tr><td>MHQA</td><td>Mental-health topic grounding, Q/A retrieval</td><td>Therapeutic empathy or crisis counseling</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="processing">
+          <h2>6. Dataset Processing Pipeline</h2>
+          <p>
+            This is the most important engineering phase. If the data processing is weak, retrieval quality will be weak even if the model is strong.
+          </p>
+          <h3>Step 6.1: Audit each CSV before transforming</h3>
+          <p>
+            Start by creating a profiling script for every file. For each CSV, compute row count, column names, null count per column, duplicate count, label distribution, and average text length. This profiling step is not optional. You need it to write correct filters for each dataset.
+          </p>
+          <pre><code># sketch only
+df = pd.read_csv(path)
+print(df.columns)
+print(df.shape)
+print(df.isna().sum())
+print(df.duplicated().sum())</code></pre>
+
+          <h3>Step 6.2: Normalize text consistently</h3>
+          <ul>
+            <li>strip leading and trailing whitespace</li>
+            <li>collapse repeated internal whitespace</li>
+            <li>normalize line breaks</li>
+            <li>replace dataset placeholders such as <code>_comma_</code> in EmpatheticDialogues</li>
+            <li>drop obviously broken or empty rows</li>
+            <li>keep original wording mostly intact because tone matters for empathy retrieval</li>
+          </ul>
+          <div class="note">
+            EmpatheticDialogues contains placeholders such as <code>_comma_</code>. Replace them before indexing, or the model may copy those unnatural tokens into replies.
+          </div>
+
+          <h3>Step 6.3: Process Reddit empathy data</h3>
+          <p>
+            Treat the Reddit files as empathy-annotation datasets, not as directly safe training conversations. Their value is in the labeled relationship between a support-seeking post and a response.
+          </p>
+          <h4>Keep these fields</h4>
+          <ul>
+            <li><code>seeker_post</code> as the distress message</li>
+            <li><code>response_post</code> as the example response</li>
+            <li><code>level</code> as empathy quality</li>
+            <li><code>rationales</code> as evidence of what makes the response empathetic</li>
+          </ul>
+          <h4>Apply these filters</h4>
+          <ul>
+            <li>drop rows with empty <code>seeker_post</code> or <code>response_post</code></li>
+            <li>drop rows where <code>level = 0</code></li>
+            <li>deduplicate identical seeker-response pairs</li>
+            <li>manually inspect samples from <code>level = 1</code> to ensure the tone is still acceptable</li>
+          </ul>
+          <h4>Build one empathy document per row</h4>
+          <pre><code>{
+  "id": "reddit-emotional_reaction-123",
+  "text": "Support-seeking message: ...\nEmpathetic response: ...\nEmpathy mechanism: emotional_reaction\nEmpathy evidence: ...",
+  "metadata": {
+    "source": "reddit",
+    "mechanism": "emotional_reaction",
+    "quality_score": 2
+  }
+}</code></pre>
+
+          <h3>Step 6.4: Process EmpatheticDialogues</h3>
+          <p>
+            Do not index each row independently. Reconstruct adjacent turns so that the indexed item mirrors the runtime task: a student-like message followed by an empathetic reply.
+          </p>
+          <ul>
+            <li>sort by <code>conv_id</code> and <code>utterance_idx</code></li>
+            <li>group by <code>conv_id</code></li>
+            <li>pair each assistant turn with the immediately preceding user turn</li>
+            <li>use <code>context</code> as emotion metadata</li>
+            <li>use <code>prompt</code> as situation metadata</li>
+          </ul>
+          <pre><code>{
+  "id": "empatheticdialogues-train-hit:0_conv:1-2",
+  "text": "Emotion label: sentimental\nSituation prompt: ...\nSpeaker message: ...\nEmpathetic reply: ...",
+  "metadata": {
+    "source": "empatheticdialogues",
+    "emotion": "sentimental",
+    "split": "train",
+    "quality_score": 2
+  }
+}</code></pre>
+
+          <h3>Step 6.5: Process MHQA</h3>
+          <p>
+            MHQA should be processed into a pure knowledge index. It should not be treated as a conversational style dataset.
+          </p>
+          <ul>
+            <li>normalize <code>correct_answer</code> and <code>correct_option</code> into one output field</li>
+            <li>keep <code>topic</code> and <code>type</code> as metadata</li>
+            <li>if <code>valid_question</code> exists, keep only valid rows</li>
+            <li>drop rows missing the core question or answer field</li>
+          </ul>
+          <pre><code>{
+  "id": "mhqa-gold-125",
+  "text": "Topic: Depression\nQuestion type: Preventive\nQuestion: ...\nCorrect answer: ...\nOptions: ...",
+  "metadata": {
+    "source": "mhqa",
+    "topic": "Depression",
+    "question_type": "Preventive",
+    "quality_score": 2
+  }
+}</code></pre>
+
+          <div class="warning">
+            Do not mix MHQA rows into the same collection as empathy examples. If you do, a student sharing emotional pain may retrieve an exam-style multiple-choice record instead of a warm support pattern.
+          </div>
+        </section>
+
+        <section id="schema">
+          <h2>7. Unified Document Schema</h2>
+          <p>
+            Even though the sources differ, your indexing pipeline should produce records in a consistent schema. This makes retrieval, logging, debugging, and evaluation easier.
+          </p>
+          <pre><code>{
+  "id": "unique-string-id",
+  "collection": "empathy | knowledge",
+  "text": "document content used for embedding and retrieval",
+  "metadata": {
+    "source": "reddit | empatheticdialogues | mhqa",
+    "subset": "optional",
+    "quality_score": 0,
+    "topic": "optional",
+    "emotion": "optional",
+    "mechanism": "optional",
+    "question_type": "optional",
+    "path": "relative path to source file"
+  }
+}</code></pre>
+          <table>
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>source</code></td><td>Shows where the document came from.</td></tr>
+              <tr><td><code>quality_score</code></td><td>Allows reranking and filtering low-value empathy examples.</td></tr>
+              <tr><td><code>mechanism</code></td><td>Distinguishes emotional reaction, interpretation, and exploration.</td></tr>
+              <tr><td><code>emotion</code></td><td>Helps match similar emotional situations from EmpatheticDialogues.</td></tr>
+              <tr><td><code>topic</code></td><td>Supports MHQA topic routing such as depression, anxiety, trauma, or OCD.</td></tr>
+              <tr><td><code>question_type</code></td><td>Useful for analytics and fine-grained routing.</td></tr>
+            </tbody>
+          </table>
+          <p>
+            For these datasets, one row or one dialogue pair should usually become one indexable unit. You do not need heavy token-based chunking because the source items are already short and semantically compact.
+          </p>
+        </section>
+
+        <section id="indexing">
+          <h2>8. Embeddings and Vector Indexing</h2>
+          <p>
+            Once the records are standardized, the next stage is embedding and indexing. This is where the app becomes a real RAG system rather than a plain chatbot.
+          </p>
+          <h3>Recommended embedding approach</h3>
+          <p>
+            Use <code>sentence-transformers</code> for dense semantic embeddings. The library is built specifically for semantic search, embeddings, and retrieval-style applications, which is why it fits this project well.
+          </p>
+          <pre><code>from chromadb.utils import embedding_functions
+
+embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
+    model_name="all-MiniLM-L6-v2",
+    device="cpu"  # or cuda if available
+)</code></pre>
+
+          <h3>Vector database design</h3>
+          <p>
+            Create two Chroma collections:
+          </p>
+          <ul>
+            <li><code>student_support_empathy</code></li>
+            <li><code>student_support_knowledge</code></li>
+          </ul>
+          <pre><code>client = chromadb.PersistentClient(path="./chroma_db")
+
+empathy = client.get_or_create_collection(
+    name="student_support_empathy",
+    embedding_function=embedding_fn
+)
+
+knowledge = client.get_or_create_collection(
+    name="student_support_knowledge",
+    embedding_function=embedding_fn
+)</code></pre>
+          <div class="note">
+            Chroma documentation describes <code>PersistentClient</code> as suitable for local development and testing, and recommends server-backed Chroma for production use.
+          </div>
+
+          <h3>Index build process</h3>
+          <ol>
+            <li>load processed empathy and knowledge records</li>
+            <li>batch them into manageable upsert sizes, usually 100 to 500</li>
+            <li>store <code>id</code>, <code>text</code>, and <code>metadata</code></li>
+            <li>rebuild the collection whenever your processing rules change</li>
+            <li>save the build date and processing version so results are traceable</li>
+          </ol>
+        </section>
+
+        <section id="retrieval">
+          <h2>9. Retrieval Strategy</h2>
+          <p>
+            Retrieval should not be a single fixed query against one pool. Build a small routing layer first, then query the right collection or both collections.
+          </p>
+          <h3>Step 9.1: Add a lightweight message router</h3>
+          <ul>
+            <li><strong>support-only</strong>: emotional distress, venting, loneliness, self-doubt, academic stress</li>
+            <li><strong>knowledge-seeking</strong>: asks factual questions about symptoms, coping, therapy, or disorders</li>
+            <li><strong>mixed</strong>: needs both emotional validation and factual clarification</li>
+            <li><strong>high-risk</strong>: self-harm, suicide, immediate danger, abuse, or inability to stay safe</li>
+          </ul>
+
+          <h3>Step 9.2: Query empathy collection</h3>
+          <p>
+            Always query empathy for support-only and mixed messages. Retrieve several candidates first, then rerank them.
+          </p>
+          <ul>
+            <li>initial <code>top_k = 6</code></li>
+            <li>final empathy snippets passed to the model: 2 or 3</li>
+          </ul>
+
+          <h3>Step 9.3: Query knowledge collection only when needed</h3>
+          <p>
+            Only query MHQA for knowledge-seeking and mixed messages. This prevents the chatbot from sounding too academic when the user mainly needs comfort.
+          </p>
+          <ul>
+            <li>initial <code>top_k = 3</code></li>
+            <li>optionally filter by topic when obvious topic keywords appear</li>
+          </ul>
+
+          <h3>Step 9.4: Rerank retrieved items</h3>
+          <p>
+            After vector search, apply simple project-specific reranking:
+          </p>
+          <ul>
+            <li>prefer higher <code>quality_score</code> for Reddit</li>
+            <li>prefer topical relevance for MHQA</li>
+            <li>prefer source diversity so the model does not overfit to one example</li>
+            <li>drop empathy examples with unacceptable phrasing after a safety review pass</li>
+          </ul>
+          <pre><code># pseudocode only
+retrieved = empathy_collection.query(...)
+sorted_items = sort_by(
+    semantic_similarity,
+    quality_score,
+    source_diversity
+)</code></pre>
+
+          <h3>Step 9.5: Keep empathy and knowledge separate in the prompt</h3>
+          <p>
+            Label the retrieved context explicitly as empathy context and knowledge context. Do not merge them into one anonymous text block.
+          </p>
+        </section>
+
+        <section id="prompting">
+          <h2>10. Prompt and Generation Design</h2>
+          <p>
+            The prompt is where the whole design comes together. The model must be told how to use the retrieved material, not just shown the material.
+          </p>
+          <h3>System prompt responsibilities</h3>
+          <ul>
+            <li>define the bot as an empathetic student support assistant</li>
+            <li>forbid diagnosis and overclaiming</li>
+            <li>tell the model to use empathy snippets for style and response pattern</li>
+            <li>tell the model to use knowledge snippets for grounded explanation only when relevant</li>
+            <li>force emotional validation first</li>
+            <li>define a safer response mode for high-risk inputs</li>
+          </ul>
+
+          <h3>Prompt structure</h3>
+          <pre><code>System:
+You are an empathetic mental-health support chatbot for students...
+
+User message:
+{student_message}
+
+Recent history:
+{recent_history}
+
+Retrieved empathy examples:
+1. ...
+2. ...
+3. ...
+
+Retrieved mental-health knowledge:
+1. ...
+2. ...
+
+Instructions:
+- Validate the student's feelings first.
+- Do not copy retrieved text directly.
+- Use factual knowledge only if it clearly helps.
+- Do not diagnose.
+- Offer one practical next step.
+- End with one gentle follow-up question.</code></pre>
+
+          <h3>Generation settings</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Starting recommendation</th>
+                <th>Why</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>temperature</code></td><td>0.3 to 0.6</td><td>Keeps replies stable and less erratic.</td></tr>
+              <tr><td><code>max_tokens</code></td><td>200 to 320</td><td>Enough space for warmth without rambling.</td></tr>
+              <tr><td><code>top_p</code></td><td>optional, moderate</td><td>Use only if you need additional diversity control.</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Model serving choice</h3>
+          <p>
+            If you stay close to the current repo, use Hugging Face <code>InferenceClient</code> first. The official docs support chat-completion style calls with role-based messages, which matches the current app design.
+          </p>
+          <pre><code>from huggingface_hub import InferenceClient
+
+client = InferenceClient(model="your-chat-model", token=HF_TOKEN)
+response = client.chat_completion(messages=messages)</code></pre>
+        </section>
+
+        <section id="safety">
+          <h2>11. Safety Layer</h2>
+          <p>
+            A mental-health chatbot needs a safety layer outside of the normal RAG flow. This should happen both before generation and after generation.
+          </p>
+          <h3>Pre-generation checks</h3>
+          <ul>
+            <li>detect high-risk self-harm or suicide language</li>
+            <li>detect immediate danger or inability to stay safe</li>
+            <li>detect requests for diagnosis, medication, or emergency advice</li>
+          </ul>
+          <h3>High-risk route design</h3>
+          <ul>
+            <li>acknowledge distress</li>
+            <li>encourage immediate contact with a trusted person, local emergency services, or local crisis support</li>
+            <li>avoid long analytical advice</li>
+            <li>ask one grounding or next-step question only if appropriate</li>
+          </ul>
+          <h3>Post-generation checks</h3>
+          <ul>
+            <li>does the reply contain a diagnosis claim?</li>
+            <li>does it sound blaming, dismissive, or overly casual?</li>
+            <li>does it give unsafe medical advice?</li>
+            <li>does it overstate certainty?</li>
+          </ul>
+          <div class="warning">
+            The app should never say things like “you definitely have depression,” “stop taking your medicine,” or “ignore those thoughts.” Those are system-design failures, not small wording issues.
+          </div>
+        </section>
+
+        <section id="app">
+          <h2>12. App Design</h2>
+          <p>
+            There are two sensible ways to design the app: a fast prototype path and a production path.
+          </p>
+          <div class="two-col">
+            <div class="card">
+              <h3>Option A: Prototype with Gradio</h3>
+              <ul>
+                <li>single Python app</li>
+                <li><code>gr.ChatInterface</code> for the UI</li>
+                <li>easy local testing</li>
+                <li>best for demo and iteration</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>Option B: Production app later</h3>
+              <ul>
+                <li><code>FastAPI</code> backend for routing and inference</li>
+                <li>React or Next.js frontend for a polished student-facing UI</li>
+                <li>better auth, analytics, and feedback collection</li>
+              </ul>
+            </div>
+          </div>
+          <h3>Recommended UI features</h3>
+          <ul>
+            <li>chat history window</li>
+            <li>clear note that the assistant is supportive but not emergency care</li>
+            <li>feedback controls such as “helpful” or “not helpful”</li>
+            <li>optional groundedness badge for factual answers</li>
+            <li>calm, non-clinical visual design suitable for students</li>
+          </ul>
+          <h3>Backend responsibilities</h3>
+          <ul>
+            <li>load config and API tokens</li>
+            <li>load vector collections</li>
+            <li>receive user message and history</li>
+            <li>run routing and safety checks</li>
+            <li>perform retrieval</li>
+            <li>assemble prompt</li>
+            <li>generate and log the answer</li>
+          </ul>
+        </section>
+
+        <section id="memory">
+          <h2>13. Conversation Memory</h2>
+          <p>
+            Do not store full runtime conversation history in the same vector collections as your datasets. Runtime memory and offline knowledge are different things.
+          </p>
+          <ul>
+            <li>keep the last 3 to 5 turns directly in the prompt</li>
+            <li>log each turn to JSONL or a small database</li>
+            <li>do not index user conversations into empathy or MHQA collections by default</li>
+            <li>if long-term memory is later needed, create a separate memory store with stricter privacy rules</li>
+          </ul>
+        </section>
+
+        <section id="evaluation">
+          <h2>14. Evaluation Plan</h2>
+          <p>
+            Evaluation should be planned before deployment. Mental-health support systems can feel good in demos and still fail in important edge cases.
+          </p>
+          <h3>Build a test prompt set</h3>
+          <ul>
+            <li>exam and deadline stress</li>
+            <li>loneliness and homesickness</li>
+            <li>low mood and lack of motivation</li>
+            <li>knowledge-seeking questions about symptoms or coping</li>
+            <li>high-risk crisis-like prompts for safety routing tests</li>
+          </ul>
+          <h3>Score each response on four axes</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Axis</th>
+                <th>Question</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Empathy</td><td>Did the answer make the student feel heard and understood?</td></tr>
+              <tr><td>Groundedness</td><td>When factual content appeared, was it aligned with retrieved MHQA context?</td></tr>
+              <tr><td>Safety</td><td>Did the answer avoid diagnosis, unsafe advice, or dismissive tone?</td></tr>
+              <tr><td>Usefulness</td><td>Did the answer offer a realistic next step for a student?</td></tr>
+            </tbody>
+          </table>
+          <h3>Track retrieval quality too</h3>
+          <ul>
+            <li>did the right empathy mechanism show up?</li>
+            <li>did the retrieved examples look emotionally similar?</li>
+            <li>did MHQA retrieval match the user’s topic?</li>
+            <li>were any low-quality Reddit samples still surfacing?</li>
+          </ul>
+        </section>
+
+        <section id="deployment">
+          <h2>15. Deployment Roadmap</h2>
+          <p>
+            Start small and keep the deployment path incremental.
+          </p>
+          <h3>Local development</h3>
+          <ul>
+            <li>keep datasets local</li>
+            <li>build Chroma collections with <code>PersistentClient</code></li>
+            <li>run the app in Gradio</li>
+            <li>log locally to JSONL</li>
+          </ul>
+          <h3>Pre-production</h3>
+          <ul>
+            <li>freeze the data processing pipeline</li>
+            <li>version the index build</li>
+            <li>expand test prompts</li>
+            <li>add response review and safety testing</li>
+          </ul>
+          <h3>Production direction</h3>
+          <ul>
+            <li>move to server-backed Chroma</li>
+            <li>use a proper backend API layer</li>
+            <li>store logs more securely</li>
+            <li>add access control and feedback capture</li>
+            <li>publish local emergency and counseling resources based on deployment region</li>
+          </ul>
+        </section>
+
+        <section id="phases">
+          <h2>16. Suggested Implementation Phases</h2>
+          <p>
+            A phased implementation helps prevent building everything at once and then discovering retrieval quality problems too late.
+          </p>
+          <h3>Phase 1: Data understanding</h3>
+          <ul>
+            <li>profile all three dataset groups</li>
+            <li>confirm columns and row counts</li>
+            <li>write down filtering rules</li>
+          </ul>
+          <h3>Phase 2: Processing pipeline</h3>
+          <ul>
+            <li>build separate cleaning scripts for empathy and knowledge</li>
+            <li>generate standardized JSONL records</li>
+            <li>sample records manually to inspect quality</li>
+          </ul>
+          <h3>Phase 3: Indexing</h3>
+          <ul>
+            <li>build the two Chroma collections</li>
+            <li>verify counts and random retrieval samples</li>
+            <li>adjust metadata and ranking logic</li>
+          </ul>
+          <h3>Phase 4: RAG orchestration</h3>
+          <ul>
+            <li>add message router</li>
+            <li>add crisis detector</li>
+            <li>add empathy retrieval</li>
+            <li>add optional MHQA retrieval</li>
+            <li>assemble prompts</li>
+          </ul>
+          <h3>Phase 5: App integration</h3>
+          <ul>
+            <li>connect the orchestration layer to Gradio</li>
+            <li>display history cleanly</li>
+            <li>log all requests and retrieved document ids</li>
+          </ul>
+          <h3>Phase 6: Evaluation and hardening</h3>
+          <ul>
+            <li>test on curated prompt sets</li>
+            <li>review unsafe or weak answers</li>
+            <li>tighten prompt rules and filters</li>
+            <li>improve reranking and routing</li>
+          </ul>
+        </section>
+
+        <section id="pitfalls">
+          <h2>17. Common Pitfalls</h2>
+          <ul>
+            <li><strong>Using one mixed collection for everything.</strong> This causes empathy and knowledge to interfere with each other.</li>
+            <li><strong>Keeping Reddit <code>level = 0</code> rows.</strong> This teaches poor support behavior.</li>
+            <li><strong>Indexing raw EmpatheticDialogues rows without reconstructing pairs.</strong> This weakens conversational retrieval.</li>
+            <li><strong>Treating MHQA as direct therapy advice.</strong> It is a knowledge source, not a counseling policy.</li>
+            <li><strong>No safety routing.</strong> A normal chat answer to a crisis prompt is not acceptable.</li>
+            <li><strong>Too much history in every prompt.</strong> This increases cost and noise without improving support quality.</li>
+            <li><strong>No retrieval logging.</strong> If the answer is poor, you need evidence of what context was retrieved.</li>
+          </ul>
+        </section>
+
+        <section id="sources">
+          <h2>18. Primary Sources and Useful References</h2>
+          <p>
+            These are the main official or primary-source references relevant to the stack and dataset origins. They support the tool choices and architecture described in this guide.
+          </p>
+          <ul>
+            <li><a href="https://github.com/behavioral-data/Empathy-Mental-Health">Empathy-Mental-Health dataset repository</a></li>
+            <li><a href="https://aclanthology.org/P19-1534/">EmpatheticDialogues paper</a></li>
+            <li><a href="https://bharatgen.com/datasets/">BharatGen datasets page</a></li>
+            <li><a href="https://huggingface.co/papers/2502.15418">MHQA paper summary page</a></li>
+            <li><a href="https://docs.trychroma.com/reference/python/client">Chroma Python client documentation</a></li>
+            <li><a href="https://docs.trychroma.com/docs/collections/manage-collections">Chroma collection management documentation</a></li>
+            <li><a href="https://docs.trychroma.com/docs/run-chroma/clients">Chroma clients overview</a></li>
+            <li><a href="https://www.sbert.net/examples/sentence_transformer/applications/semantic-search/README.html">Sentence Transformers semantic search documentation</a></li>
+            <li><a href="https://www.sbert.net/">Sentence Transformers documentation home</a></li>
+            <li><a href="https://huggingface.co/docs/huggingface_hub/package_reference/inference_client">Hugging Face InferenceClient reference</a></li>
+            <li><a href="https://huggingface.co/docs/huggingface_hub/guides/inference">Hugging Face inference guide</a></li>
+            <li><a href="https://www.gradio.app/docs/gradio/chatinterface">Gradio ChatInterface documentation</a></li>
+          </ul>
+          <div class="success">
+            <strong>Final recommendation:</strong> build the system in this order: process data correctly, separate empathy and knowledge, build two collections, add routing and safety, then integrate the UI. If you reverse that order and start with UI polish first, the chatbot may look complete while still behaving poorly underneath.
+          </div>
+        </section>
+
+        <footer>
+          Guide prepared for the local project in <code>C:\PROJ\P4 SARA</code>. This document is a design and implementation roadmap, not a full code implementation.
+        </footer>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

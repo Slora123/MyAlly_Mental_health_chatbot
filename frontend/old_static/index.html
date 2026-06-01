@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyAlly – Student Mental-Health Support</title>
+  <meta name="description" content="MyAlly – your empathetic mental-health companion for students." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ─────────────────────────── THEMES ─────────────────────────── */
+    :root {
+      --transition: background 0.8s ease, color 0.5s ease;
+    }
+
+    /* Calm Light (default) */
+    body.theme-calm {
+      --bg:
+        radial-gradient(circle at 10% 10%, #ffdfcd 0%, transparent 50%),
+        radial-gradient(circle at 90% 40%, #ffced7 0%, transparent 50%),
+        radial-gradient(circle at 50% 90%, #ffe3d5 0%, transparent 60%),
+        #fbf1ec;
+      --glass-panel-bg: rgba(255, 255, 255, 0.35);
+      --glass-panel-border: rgba(255, 255, 255, 0.7);
+      --header-border: rgba(0, 0, 0, 0.05);
+      --user-bubble: linear-gradient(135deg, #f27c65, #fb9a7c);
+      --bot-bubble: rgba(255, 255, 255, 0.85);
+      --bot-border: rgba(0, 0, 0, 0.03);
+      --input-bg: rgba(255, 255, 255, 0.6);
+      --input-border: rgba(255, 255, 255, 0.8);
+      --input-focus: rgba(242, 124, 101, 0.5);
+      --send-bg: linear-gradient(135deg, #f27c65, #fb9a7c);
+      --text: #4a3e3d;
+      --text-muted: #9e8e8c;
+      --bot-text: #4a3e3d;
+      --time-color: rgba(0, 0, 0, 0.35);
+      --user-time: rgba(255, 255, 255, 0.8);
+      --avatar-bot: linear-gradient(135deg, #f27c65, #fb9a7c);
+      --avatar-user: linear-gradient(135deg, #5d4037, #3e2723);
+      --theme-icon: 🎨;
+      --theme-name: "Calm Light";
+      --status-text: "here for you, always";
+      --chip-bg: rgba(242, 124, 101, 0.12);
+      --chip-border: rgba(242, 124, 101, 0.25);
+      --chip-text: #d85c45;
+    }
+
+    /* Bad Mood */
+    body.theme-angry {
+      --bg:
+        radial-gradient(circle at 0% 0%, #520b09 0%, transparent 60%),
+        radial-gradient(circle at 100% 70%, #300609 0%, transparent 50%),
+        radial-gradient(circle at 20% 100%, #400404 0%, transparent 60%),
+        #170505;
+      --glass-panel-bg: rgba(30, 5, 5, 0.5);
+      --glass-panel-border: rgba(255, 70, 70, 0.15);
+      --header-border: rgba(255, 255, 255, 0.05);
+      --user-bubble: linear-gradient(135deg, #fd4635, #e02f23);
+      --bot-bubble: rgba(20, 5, 5, 0.6);
+      --bot-border: rgba(255, 255, 255, 0.06);
+      --input-bg: rgba(30, 8, 8, 0.5);
+      --input-border: rgba(255, 255, 255, 0.08);
+      --input-focus: rgba(253, 70, 53, 0.6);
+      --send-bg: linear-gradient(135deg, #fd4635, #e02f23);
+      --text: #ffd6d4;
+      --text-muted: #c99391;
+      --bot-text: #ffd6d4;
+      --time-color: rgba(255, 255, 255, 0.35);
+      --user-time: rgba(255, 255, 255, 0.8);
+      --avatar-bot: linear-gradient(135deg, #fd4635, #e02f23);
+      --avatar-user: linear-gradient(135deg, #4a1a1a, #2d0a0a);
+      --theme-icon: 🔥;
+      --theme-name: "Bad Mood";
+      --status-text: "I'm here through the storm";
+      --chip-bg: rgba(253, 70, 53, 0.15);
+      --chip-border: rgba(253, 70, 53, 0.3);
+      --chip-text: #ffaa99;
+    }
+
+    /* Soft Pink (happy) */
+    body.theme-happy {
+      --bg:
+        radial-gradient(circle at 10% 20%, #ffe0f0 0%, transparent 50%),
+        radial-gradient(circle at 90% 60%, #ffabc7 0%, transparent 50%),
+        radial-gradient(circle at 30% 90%, #ffd4e5 0%, transparent 60%),
+        #fce8f2;
+      --glass-panel-bg: rgba(255, 255, 255, 0.4);
+      --glass-panel-border: rgba(255, 255, 255, 0.75);
+      --header-border: rgba(233, 30, 99, 0.1);
+      --user-bubble: linear-gradient(135deg, #ff609a, #e7467e);
+      --bot-bubble: rgba(255, 255, 255, 0.85);
+      --bot-border: rgba(0, 0, 0, 0.03);
+      --input-bg: rgba(255, 255, 255, 0.6);
+      --input-border: rgba(255, 255, 255, 0.9);
+      --input-focus: rgba(255, 96, 154, 0.5);
+      --send-bg: linear-gradient(135deg, #ff609a, #e7467e);
+      --text: #5c203b;
+      --text-muted: #a8728a;
+      --bot-text: #5c203b;
+      --time-color: rgba(0, 0, 0, 0.35);
+      --user-time: rgba(255, 255, 255, 0.9);
+      --avatar-bot: linear-gradient(135deg, #ff609a, #e7467e);
+      --avatar-user: linear-gradient(135deg, #880e4f, #560027);
+      --theme-icon: 💗;
+      --theme-name: "Soft Pink";
+      --status-text: "feeling joyful with you ✨";
+      --chip-bg: rgba(255, 96, 154, 0.12);
+      --chip-border: rgba(255, 96, 154, 0.25);
+      --chip-text: #d81b60;
+    }
+
+    /* Dark Night (sad/late) */
+    body.theme-night {
+      --bg:
+        radial-gradient(circle at 0% 10%, #20113f 0%, transparent 60%),
+        radial-gradient(circle at 100% 50%, #2b114d 0%, transparent 50%),
+        radial-gradient(circle at 50% 100%, #15092a 0%, transparent 50%),
+        #0b0616;
+      --glass-panel-bg: rgba(15, 8, 30, 0.5);
+      --glass-panel-border: rgba(139, 92, 246, 0.2);
+      --header-border: rgba(255, 255, 255, 0.05);
+      --user-bubble: linear-gradient(135deg, #aa5af5, #8537d8);
+      --bot-bubble: rgba(20, 10, 45, 0.6);
+      --bot-border: rgba(255, 255, 255, 0.05);
+      --input-bg: rgba(30, 20, 50, 0.5);
+      --input-border: rgba(255, 255, 255, 0.1);
+      --input-focus: rgba(170, 90, 245, 0.5);
+      --send-bg: linear-gradient(135deg, #aa5af5, #8537d8);
+      --text: #eadeff;
+      --text-muted: #a38fcc;
+      --bot-text: #eadeff;
+      --time-color: rgba(255, 255, 255, 0.35);
+      --user-time: rgba(255, 255, 255, 0.8);
+      --avatar-bot: linear-gradient(135deg, #aa5af5, #8537d8);
+      --avatar-user: linear-gradient(135deg, #311b92, #1a0a5e);
+      --theme-icon: 🌙;
+      --theme-name: "Dark Night";
+      --status-text: "with you through the night 🌙";
+      --chip-bg: rgba(170, 90, 245, 0.15);
+      --chip-border: rgba(170, 90, 245, 0.3);
+      --chip-text: #dcb3ff;
+    }
+
+    /* ─────────────────────────── BASE ─────────────────────────── */
+    html,
+    body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      background-size: cover;
+      background-attachment: fixed;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Main Container */
+    .app-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ────────── HEADER ────────── */
+    .header {
+      padding: 24px 30px 16px;
+      width: 100%;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .bot-avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: var(--avatar-bot);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      transition: var(--transition);
+      flex-shrink: 0;
+      animation: float-avatar 3s ease-in-out infinite;
+    }
+
+    @keyframes float-avatar {
+
+      0%,
+      100% {
+        transform: translateY(0px) scale(1);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      50% {
+        transform: translateY(-4px) scale(1.05);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    .header-info h2 {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      color: var(--text);
+      transition: color 0.4s;
+      margin-bottom: 2px;
+    }
+
+    .header-info p {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: color 0.4s;
+    }
+
+    .header-info p .online-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      margin-right: 5px;
+      vertical-align: middle;
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+      animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
+    }
+
+    /* Theme picker */
+    .theme-picker-wrap {
+      position: relative;
+    }
+
+    .theme-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--input-border);
+      background: var(--input-bg);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      backdrop-filter: blur(8px);
+    }
+
+    .theme-btn:hover {
+      border-color: var(--input-focus);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .theme-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      background: var(--glass-panel-bg);
+      border: 1px solid var(--glass-panel-border);
+      border-radius: 16px;
+      padding: 8px;
+      min-width: 170px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      z-index: 100;
+    }
+
+    .theme-dropdown.open {
+      display: block;
+      animation: dropdown-in 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes dropdown-in {
+      from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .theme-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      transition: background 0.15s, transform 0.15s;
+    }
+
+    .theme-option:hover {
+      background: rgba(0, 0, 0, 0.05);
+      transform: translateX(2px);
+    }
+
+    .theme-option.active {
+      background: rgba(0, 0, 0, 0.08);
+      font-weight: 700;
+    }
+
+    /* ────────── CENTER WRAPPER ────────── */
+    .chat-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 20px;
+      overflow: hidden;
+    }
+
+    /* ────────── MESSAGES GLASS BOX ────────── */
+    #messages {
+      width: 100%;
+      flex: 1;
+      background: var(--glass-panel-bg);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border: 1px solid var(--glass-panel-border);
+      border-radius: 28px;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.08);
+      scroll-behavior: smooth;
+    }
+
+    #messages::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    #messages::-webkit-scrollbar-thumb {
+      background: rgba(128, 128, 128, 0.25);
+      border-radius: 4px;
+    }
+
+    /* Message row */
+    .msg-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      animation: msg-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+      margin-bottom: 6px;
+    }
+
+    @keyframes msg-in {
+      from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .msg-row.user {
+      flex-direction: row-reverse;
+    }
+
+    .msg-row.bot {
+      flex-direction: row;
+    }
+
+    /* Avatars in chat */
+    .msg-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: var(--transition);
+    }
+
+    .msg-row.bot .msg-avatar {
+      background: var(--avatar-bot);
+    }
+
+    .msg-row.user .msg-avatar {
+      background: var(--avatar-user);
+    }
+
+    /* Bubble & time wrapper */
+    .msg-content {
+      display: flex;
+      flex-direction: column;
+      max-width: 78%;
+      gap: 4px;
+    }
+
+    .msg-row.user .msg-content {
+      align-items: flex-end;
+    }
+
+    .msg-row.bot .msg-content {
+      align-items: flex-start;
+    }
+
+    .bubble {
+      padding: 14px 18px;
+      border-radius: 20px;
+      font-size: 15px;
+      line-height: 1.5;
+      font-weight: 500;
+      word-break: break-word;
+      transition: var(--transition);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+    }
+
+    .msg-row.user .bubble {
+      background: var(--user-bubble);
+      color: #fff;
+      border-bottom-right-radius: 6px;
+    }
+
+    .msg-row.bot .bubble {
+      background: var(--bot-bubble);
+      backdrop-filter: blur(20px) saturate(150%);
+      -webkit-backdrop-filter: blur(20px) saturate(150%);
+      color: var(--bot-text);
+      border: 1px solid var(--bot-border);
+      border-bottom-left-radius: 6px;
+    }
+
+    .msg-time {
+      font-size: 11px;
+      padding: 0 6px;
+      font-weight: 500;
+      transition: color 0.4s;
+    }
+
+    .msg-row.user .msg-time {
+      color: var(--user-time);
+    }
+
+    .msg-row.bot .msg-time {
+      color: var(--time-color);
+    }
+
+    /* Consecutive messages - hide avatar */
+    .msg-row.hide-avatar .msg-avatar {
+      visibility: hidden;
+    }
+
+    /* Typing indicator */
+    .typing-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .typing-bubble {
+      background: var(--bot-bubble);
+      backdrop-filter: blur(20px) saturate(150%);
+      -webkit-backdrop-filter: blur(20px) saturate(150%);
+      border: 1px solid var(--bot-border);
+      border-radius: 20px;
+      border-bottom-left-radius: 6px;
+      padding: 14px 18px;
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+    }
+
+    .typing-bubble span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      display: inline-block;
+      animation: bounce 1.2s ease-in-out infinite;
+    }
+
+    .typing-bubble span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-bubble span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    /* ────────── WELCOME ────────── */
+    .welcome-banner {
+      text-align: center;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .welcome-banner h3 {
+      font-size: 22px;
+      color: var(--text);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .welcome-banner p {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 400px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 12px;
+    }
+
+    .chip {
+      padding: 10px 18px;
+      border-radius: 24px;
+      font-size: 13px;
+      background: var(--chip-bg);
+      border: 1px solid var(--chip-border);
+      color: var(--chip-text);
+      cursor: pointer;
+      transition: all 0.25s;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .chip:hover {
+      transform: translateY(-3px);
+      filter: brightness(1.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ────────── INPUT PILL ────────── */
+    .input-area {
+      width: 100%;
+      max-width: 1200px;
+      /* slightly narrower than messages */
+      padding: 20px 0 30px;
+      flex-shrink: 0;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      background: var(--glass-panel-bg);
+      border: 1px solid var(--glass-panel-border);
+      border-radius: 40px;
+      padding: 12px 14px 12px 24px;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    .input-row:focus-within {
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .emoji-btn {
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      flex-shrink: 0;
+      opacity: 0.7;
+      transition: opacity 0.2s, transform 0.2s;
+      padding: 2px;
+    }
+
+    .emoji-btn:hover {
+      opacity: 1;
+      transform: scale(1.15);
+    }
+
+    #user-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      resize: none;
+      max-height: 120px;
+      line-height: 1.5;
+      transition: color 0.4s;
+    }
+
+    #user-input::placeholder {
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .send-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      background: var(--send-bg);
+      color: #fff;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    .send-btn:hover:not(:disabled) {
+      transform: scale(1.12);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .send-btn:active:not(:disabled) {
+      transform: scale(0.92);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: scale(0.98);
+      box-shadow: none;
+    }
+
+    /* Mood flash overlay */
+    .mood-flash {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s;
+      z-index: 0;
+    }
+
+    .mood-flash.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+
+<body class="theme-calm" id="app-body">
+
+  <div class="app-container">
+
+    <!-- RAW HEADER -->
+    <header class="header">
+      <div class="header-inner">
+        <div class="header-left">
+          <div class="bot-avatar" id="bot-avatar">😊</div>
+          <div class="header-info">
+            <h2>MyAlly</h2>
+            <p><span class="online-dot"></span><span id="status-text">here for you, always</span></p>
+          </div>
+        </div>
+
+        <div class="theme-picker-wrap">
+          <button class="theme-btn" id="theme-btn" onclick="toggleThemeDropdown()">
+            <span id="theme-icon-label">🎨</span>
+            <span id="theme-name-label">Calm Light</span>
+            <span>▾</span>
+          </button>
+          <div class="theme-dropdown" id="theme-dropdown">
+            <div class="theme-option active" data-theme="calm" onclick="setTheme('calm',true)">🎨 Calm Light</div>
+            <div class="theme-option" data-theme="happy" onclick="setTheme('happy',true)">💗 Soft Pink</div>
+            <div class="theme-option" data-theme="angry" onclick="setTheme('angry',true)">🔥 Bad Mood</div>
+            <div class="theme-option" data-theme="night" onclick="setTheme('night',true)">🌙 Dark Night</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- CENTERED LAYOUT -->
+    <div class="chat-wrapper">
+
+      <!-- MESSAGES GLASS BOX -->
+      <div id="messages"></div>
+
+      <!-- INPUT PILL -->
+      <div class="input-area">
+        <div class="input-row">
+          <button class="emoji-btn" title="Emoji">🙂</button>
+          <textarea id="user-input" placeholder="Type how you feel…" rows="1" oninput="autoResize(this)"
+            onkeydown="handleKey(event)"></textarea>
+          <button class="send-btn" id="send-btn" onclick="sendMessage()">➤</button>
+        </div>
+      </div>
+
+    </div> <!-- End chat-wrapper -->
+  </div>
+
+  <script>
+    // ─── Theme config ───────────────────────────────────────────────
+    const THEMES = {
+      calm: { icon: '🎨', name: 'Calm Light', avatar: '😊', status: 'here for you, always' },
+      happy: { icon: '💗', name: 'Soft Pink', avatar: '🥰', status: 'feeling joyful with you ✨' },
+      angry: { icon: '🔥', name: 'Bad Mood', avatar: '🥺', status: "I'm here through the storm 🌩️" },
+      night: { icon: '🌙', name: 'Dark Night', avatar: '😴', status: 'with you through the night 🌙' },
+    };
+
+    // ─── Mood detection keywords (client-side, instant) ─────────────
+    const MOOD_RULES = [
+      {
+        theme: 'angry', keywords: ['angry', 'anger', 'hate', 'frustrated', 'irritated', 'furious', 'worst', 'horrible',
+          'everything is wrong', 'so mad', 'pissed', 'annoyed', 'rage', 'so angry', 'gussa', 'bahut gussa']
+      },
+      {
+        theme: 'happy', keywords: ['happy', 'joyful', 'amazing', 'great', 'fantastic', 'so happy', 'passed', 'won',
+          'excited', 'yay', 'celebrate', 'love it', 'wonderful', 'thrilled', 'khush', 'mast', 'badiya', 'awesome', 'flying colors']
+      },
+      {
+        theme: 'night', keywords: ['lonely', 'can\'t sleep', 'can not sleep', 'late night', 'night', 'wandering',
+          'overthinking', 'hopeless', 'numb', 'lost', 'emptiness', 'midnight', '2am', '3am', 'raat', 'neend nahi',
+          'what if thoughts', 'sad', 'depressed', 'depression']
+      },
+    ];
+
+    // ─── State ──────────────────────────────────────────────────────
+    const HISTORY_KEY = 'myally_chat_history';
+    const THEME_KEY = 'myally_theme';
+
+    let chatHistory = [];       // [{role, text, time}]
+    let apiHistory = [];       // [{user, bot}] for API context
+    let currentTheme = localStorage.getItem(THEME_KEY) || 'calm';
+    let manuallySwitched = false;
+
+    // ─── Init ────────────────────────────────────────────────────────
+    window.addEventListener('DOMContentLoaded', () => {
+      loadHistory();
+      setTheme(currentTheme, false);
+      if (chatHistory.length === 0) showWelcome();
+      renderHistory();
+      document.getElementById('user-input').focus();
+    });
+
+    // ─── Persist & render ────────────────────────────────────────────
+    function saveHistory() {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(chatHistory));
+    }
+
+    function loadHistory() {
+      try {
+        const saved = localStorage.getItem(HISTORY_KEY);
+        if (saved) {
+          chatHistory = JSON.parse(saved);
+          // rebuild apiHistory from saved
+          for (let i = 0; i < chatHistory.length - 1; i++) {
+            if (chatHistory[i].role === 'user' && chatHistory[i + 1].role === 'bot') {
+              apiHistory.push([chatHistory[i].text, chatHistory[i + 1].text]);
+            }
+          }
+          if (apiHistory.length > 6) apiHistory = apiHistory.slice(-6);
+        }
+      } catch (e) { chatHistory = []; }
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('messages');
+      container.innerHTML = '';
+      let lastRole = null;
+      let lastDate = null;
+
+      for (let i = 0; i < chatHistory.length; i++) {
+        const item = chatHistory[i];
+        const d = new Date(item.time);
+        const dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+
+        if (dateStr !== lastDate) {
+          const sep = document.createElement('div');
+          sep.className = 'date-sep';
+          sep.textContent = dateStr;
+          container.appendChild(sep);
+          lastDate = dateStr;
+        }
+
+        const hideAvatar = (item.role === lastRole);
+        appendBubble(item.role, item.text, formatTime(d), hideAvatar, false);
+        lastRole = item.role;
+      }
+      scrollBottom();
+    }
+
+    function showWelcome() {
+      const container = document.getElementById('messages');
+      container.innerHTML = `
+    <div class="welcome-banner">
+      <div style="font-size:48px; animation: float-avatar 3s ease-in-out infinite;">😊</div>
+      <h3>Hey! I'm MyAlly 👋</h3>
+      <p>Your chill mental-health companion.<br>English, Hinglish, ya Minglish — sab chalega!</p>
+      <div class="chips">
+        <div class="chip" onclick="sendChip(this)">😓 Exams se bahut stress ho raha hai</div>
+        <div class="chip" onclick="sendChip(this)">💤 I haven't slept properly in days</div>
+        <div class="chip" onclick="sendChip(this)">😔 Feeling lonely lately</div>
+        <div class="chip" onclick="sendChip(this)">🧠 What is anxiety?</div>
+      </div>
+    </div>
+  `;
+    }
+
+    // ─── Bubble helpers ──────────────────────────────────────────────
+    function appendBubble(role, text, timeStr, hideAvatar = false, animate = true) {
+      const container = document.getElementById('messages');
+      const welcomeBanner = container.querySelector('.welcome-banner');
+      if (welcomeBanner) welcomeBanner.remove();
+
+      const row = document.createElement('div');
+      row.className = `msg-row ${role}${hideAvatar ? ' hide-avatar' : ''}`;
+      if (!animate) row.style.animation = 'none';
+
+      const avatarEl = document.createElement('div');
+      avatarEl.className = 'msg-avatar';
+      avatarEl.textContent = role === 'bot' ? THEMES[currentTheme].avatar : '🧑‍🎓';
+
+      const contentEl = document.createElement('div');
+      contentEl.className = 'msg-content';
+
+      const bubbleEl = document.createElement('div');
+      bubbleEl.className = 'bubble';
+      bubbleEl.textContent = text;
+
+      const timeEl = document.createElement('div');
+      timeEl.className = 'msg-time';
+      timeEl.textContent = timeStr;
+
+      contentEl.appendChild(bubbleEl);
+      contentEl.appendChild(timeEl);
+      row.appendChild(avatarEl);
+      row.appendChild(contentEl);
+      container.appendChild(row);
+      scrollBottom();
+      return row;
+    }
+
+    function showTyping() {
+      const container = document.getElementById('messages');
+      const row = document.createElement('div');
+      row.className = 'typing-row';
+      row.id = 'typing-row';
+      row.innerHTML = `
+    <div class="msg-avatar" style="background: var(--avatar-bot)">${THEMES[currentTheme].avatar}</div>
+    <div class="typing-bubble"><span></span><span></span><span></span></div>
+  `;
+      container.appendChild(row);
+      scrollBottom();
+    }
+
+    function removeTyping() {
+      const el = document.getElementById('typing-row');
+      if (el) el.remove();
+    }
+
+    function formatTime(d) {
+      return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    }
+
+    function scrollBottom() {
+      const el = document.getElementById('messages');
+      el.scrollTop = el.scrollHeight;
+    }
+
+    // ─── Send message ─────────────────────────────────────────────────
+    function sendChip(el) {
+      const input = document.getElementById('user-input');
+      input.value = el.textContent.trim();
+      sendMessage();
+    }
+
+    function handleKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    }
+
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('user-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const now = new Date();
+      const timeStr = formatTime(now);
+
+      // Mood detection — only if user hasn't manually set theme
+      if (!manuallySwitched) {
+        detectMood(text);
+      }
+
+      // Determine hide-avatar
+      const lastRole = chatHistory.length ? chatHistory[chatHistory.length - 1].role : null;
+      const hideUser = lastRole === 'user';
+
+      // Push to state + render
+      chatHistory.push({ role: 'user', text, time: now.toISOString() });
+      saveHistory();
+      appendBubble('user', text, timeStr, hideUser, true);
+
+      input.value = '';
+      input.style.height = 'auto';
+      document.getElementById('send-btn').disabled = true;
+      showTyping();
+
+      // Update header typing status
+      const statusEl = document.getElementById('status-text');
+      const prevStatus = statusEl.textContent;
+      statusEl.textContent = 'typing…';
+
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, history: apiHistory })
+        });
+        const data = await res.json();
+        removeTyping();
+        statusEl.textContent = THEMES[currentTheme].status;
+
+        if (data.reply) {
+          const botNow = new Date();
+          const hideBot = chatHistory[chatHistory.length - 1]?.role === 'bot';
+          chatHistory.push({ role: 'bot', text: data.reply, time: botNow.toISOString() });
+          saveHistory();
+          appendBubble('bot', data.reply, formatTime(botNow), hideBot, true);
+          apiHistory.push([text, data.reply]);
+          if (apiHistory.length > 6) apiHistory.shift();
+        } else {
+          chatHistory.push({ role: 'bot', text: `⚠️ ${data.error || 'Something went wrong.'}`, time: new Date().toISOString() });
+          saveHistory();
+          appendBubble('bot', `⚠️ ${data.error || 'Something went wrong.'}`, formatTime(new Date()), false, true);
+        }
+      } catch (err) {
+        removeTyping();
+        statusEl.textContent = prevStatus;
+        appendBubble('bot', '⚠️ Could not reach the server. Is the app running?', formatTime(new Date()), false, true);
+      }
+
+      document.getElementById('send-btn').disabled = false;
+      input.focus();
+    }
+
+    // ─── Mood detection ───────────────────────────────────────────────
+    function detectMood(text) {
+      const lower = text.toLowerCase();
+      for (const rule of MOOD_RULES) {
+        if (rule.keywords.some(kw => lower.includes(kw))) {
+          if (currentTheme !== rule.theme) setTheme(rule.theme, false);
+          return;
+        }
+      }
+      // If no strong mood, return to calm
+      if (currentTheme !== 'night') setTheme('calm', false);
+    }
+
+    // ─── Theme switching ─────────────────────────────────────────────
+    function setTheme(theme, manual) {
+      currentTheme = theme;
+      if (manual) manuallySwitched = true;
+      localStorage.setItem(THEME_KEY, theme);
+
+      const body = document.getElementById('app-body');
+      body.className = `theme-${theme}`;
+
+      const t = THEMES[theme];
+      document.getElementById('theme-icon-label').textContent = t.icon;
+      document.getElementById('theme-name-label').textContent = t.name;
+      document.getElementById('bot-avatar').textContent = t.avatar;
+      document.getElementById('status-text').textContent = t.status;
+
+      // Update all existing bot avatars in chat
+      document.querySelectorAll('.msg-row.bot .msg-avatar').forEach(el => el.textContent = t.avatar);
+      document.querySelectorAll('.typing-row .msg-avatar').forEach(el => el.textContent = t.avatar);
+
+      // Mark active in dropdown
+      document.querySelectorAll('.theme-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.theme === theme);
+      });
+
+      closeThemeDropdown();
+    }
+
+    function toggleThemeDropdown() {
+      document.getElementById('theme-dropdown').classList.toggle('open');
+    }
+
+    function closeThemeDropdown() {
+      document.getElementById('theme-dropdown').classList.remove('open');
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+      const wrap = document.querySelector('.theme-picker-wrap');
+      if (wrap && !wrap.contains(e.target)) closeThemeDropdown();
+    });
+  </script>
+</body>
+
+</html>

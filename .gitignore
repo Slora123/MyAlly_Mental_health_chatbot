@@ -1,0 +1,50 @@
+# --- Python & System ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+build/
+dist/
+*.egg-info/
+.DS_Store
+Thumbs.db
+.ipynb_checkpoints/
+
+# --- Secrets & Keys (CRITICAL) ---
+.env
+firebase-key.json
+backend/firebase-key.json
+
+# --- Frontend ---
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# --- Database & Heavy Files ---
+*.csv
+*.jsonl
+*.db
+rag_reference_logs.jsonl
+
+# Ignore everything in chroma_db except the parts and subdirectories
+database/chroma_db/*
+!database/chroma_db/chroma.sqlite3.b64.*
+!database/chroma_db/*/
+
+# Ignore the heavy raw dataset folders
+database/empatheticdialogues*/
+database/mhqa-main/
+
+# UNIGNORE processed dataset PARTS
+!database/data/processed/knowledge_part_*
+!database/data/processed/empathy_documents.jsonl
+
+# UNIGNORE essential UI assets
+!*.png
+!*.svg
+!*.ico
+!*.jpg
+!*.jpeg
+
+
+to_Be_done.txt

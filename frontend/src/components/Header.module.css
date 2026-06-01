@@ -1,0 +1,300 @@
+/* Header.module.css */
+
+.header {
+  height: 75px;
+  padding: 0 24px;
+  display: flex !important;
+  justify-content: space-between;
+  align-items: center;
+  background: transparent !important;
+  z-index: 500;
+}
+
+/* ── Left: Branding ─────────────────────────────── */
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--header-name-color);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--status-color);
+  margin: 0;
+  opacity: 0.7;
+}
+
+.onlineDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-color);
+  box-shadow: 0 0 10px var(--status-color);
+}
+
+/* Sidebar history toggle button */
+.historyBtn {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--header-name-color);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.historyBtn:hover {
+  background: rgba(255, 255, 255, 0.7);
+  transform: scale(1.05);
+}
+
+/* ── Right Section ──────────────────────────────── */
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── Theme Picker ───────────────────────────────── */
+.pickerWrap {
+  position: relative;
+}
+
+.themeBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #3c1a1a;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.themeBtn:hover {
+  background: rgba(255, 255, 255, 0.6);
+  transform: translateY(-1px);
+}
+
+.themeName {
+  margin: 0 4px;
+  opacity: 0.6;
+}
+
+.chevron {
+  font-size: 10px;
+  transition: transform 0.2s ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 180px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  padding: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1000;
+  animation: dropdown-in 0.2s ease-out;
+}
+
+.themeOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #3c1a1a;
+  text-align: left;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.themeOption:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.active {
+  background: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+}
+
+.checkMark {
+  margin-left: auto;
+  color: #22c55e;
+  font-weight: bold;
+}
+
+/* ── Profile Circle ─────────────────────────────── */
+.profileWrap {
+  position: relative;
+}
+
+.profileCircle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--bubble-user-bg);
+  color: white;
+  font-size: 16px;
+  font-weight: 800;
+  font-family: 'Outfit', sans-serif;
+  border: 2.5px solid rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px var(--bubble-user-shadow);
+  transition: all 0.2s ease;
+  letter-spacing: 0;
+}
+
+.profileCircle:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px var(--bubble-user-shadow);
+}
+
+.profileDropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 280px;
+  width: max-content;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 18px;
+  padding: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  animation: dropdown-in 0.2s ease-out;
+}
+
+.profileEmailRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+}
+
+.profileIcon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.profileEmail {
+  font-size: 12px;
+  font-weight: 600;
+  color: #3c1a1a;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.profileDivider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.07);
+  margin: 8px 0;
+  border-radius: 1px;
+}
+
+.logoutBtn {
+  width: 100%;
+  background: rgba(220, 38, 38, 0.07);
+  border: 1.5px solid rgba(220, 38, 38, 0.2);
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  padding: 9px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logoutBtn:hover {
+  background: rgba(220, 38, 38, 0.14);
+  transform: translateX(2px);
+}
+
+/* ── Animations ─────────────────────────────────── */
+@keyframes dropdown-in {
+  from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0)     scale(1);    }
+}
+
+/* ── Responsive ─────────────────────────────────── */
+@media (max-width: 640px) {
+  .header { padding: 0 16px; }
+  .name { font-size: 16px; }
+  .themeName { display: inline; }
+}

@@ -1,0 +1,30 @@
+📦 Building frontend...
+
+> frontend@0.0.0 build
+> vite build
+
+vite v8.0.9 building client environment for production...
+[2Ktransforming...✓ 51 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.78 kB │ gzip:   0.46 kB
+dist/assets/index-BF-493XG.css   18.78 kB │ gzip:   4.71 kB
+dist/assets/index-NNdqgGZ5.js   383.15 kB │ gzip: 118.15 kB
+
+✓ built in 648ms
+🚀 Starting MyAlly (Serving Frontend + Backend)...
+/Users/user/Projects/MyAlly_TISD+FSD/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/user/Projects/MyAlly_TISD+FSD/.venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/user/Projects/MyAlly_TISD+FSD/.venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+INFO:     Started server process [45797]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [45797]
+start.sh: line 16: 45797 Terminated: 15          python3 -m uvicorn src.app.chat_api:app --host 0.0.0.0 --port ${PORT:-8000}
