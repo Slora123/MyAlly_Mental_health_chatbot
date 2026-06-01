@@ -99,9 +99,6 @@ export default function Login({ setAuthToken }) {
         }}>
           {/* Left Side */}
           <div className="login-text-side" style={{ flex: 1, padding: '70px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '24px' }}>
-              <img src="/logo.png" alt="MyAlly Logo" style={{ width: '64px', height: '64px', borderRadius: '18px', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }} />
-            </div>
             <h1 style={{
               fontSize: '4.8rem', fontWeight: '900', color: '#1e293b',
               marginBottom: '10px', letterSpacing: '-2px', lineHeight: 1
