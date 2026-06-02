@@ -48,23 +48,29 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         console.log("👤 [App] Auth state changed: User is logged in", user.email);
-        const token = await user.getIdToken();
-        localStorage.setItem('myally_token', token);
-        localStorage.setItem('myally_explicit_login', 'true');
-        setAuthTokenState(token);
+        try {
+          const token = await user.getIdToken(/* forceRefresh */ false);
+          localStorage.setItem('myally_token', token);
+          localStorage.setItem('myally_explicit_login', 'true');
+          setAuthTokenState(token);
+        } catch (e) {
+          console.warn('Failed to get token, logging out:', e);
+          localStorage.removeItem('myally_token');
+          localStorage.removeItem('myally_explicit_login');
+          setAuthTokenState(null);
+          navigate('/');
+        }
       } else {
         console.log("👤 [App] No Firebase user. Clearing all tokens.");
         localStorage.removeItem('myally_token');
         localStorage.removeItem('myally_explicit_login');
         setAuthTokenState(null);
-        if (window.location.pathname !== '/') {
-          navigate('/');
-        }
+        navigate('/');
       }
       setLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [navigate]);
 
 
   if (loading) {
@@ -115,7 +121,9 @@ async function handleLogout(setAuthToken) {
 
 function ChatApp({ authToken, setAuthToken }) {
 
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
+
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [theme, setTheme] = useState('calm');
@@ -148,60 +156,80 @@ function ChatApp({ authToken, setAuthToken }) {
 
   // Load initial session on mount
   useEffect(() => {
-    if (authToken) {
-      // Fetch user profile to get email and saved avatar keys
-      apiFetch('/api/user/profile', {
-        headers: { 'Authorization': `Bearer ${authToken}` }
-      }).then(r => r.ok ? r.json() : null)
-        .then(profile => { 
-          if (profile) {
-            if (profile.email) setUserEmail(profile.email);
-            // avatar_url / bot_avatar_url are stored as key strings ("female", "male", "default")
-            // or as a compressed base64 data URL for custom uploads
-            if (profile.avatar_url) setUserAvatar(profile.avatar_url);
-            if (profile.bot_avatar_url) setMyAllyAvatar(profile.bot_avatar_url);
-            setUserProfile(profile);
-          }
-        })
-        .catch(() => {});
+    if (!authToken) return;
 
-      const fetchAllHistory = async () => {
-        try {
-          const res = await apiFetch('/api/chats/all', {
-            headers: { 'Authorization': `Bearer ${authToken}` }
-          });
-          if (res.status === 401) {
-            setAuthToken(null);
-            return;
-          }
-          if (res.ok) {
-            const data = await res.json();
-            if (data.session_id) {
-              setSessionId(data.session_id);
-            }
-            if (data.messages) {
-              const loadedMessages = data.messages.map(m => ({
-                role: m.role,
-                text: m.content,
-                time: m.created_at
-              }));
-              setMessages(loadedMessages);
-            }
-          } else {
-             const errorData = await res.json().catch(() => null);
-             console.error("Failed to load chat history. Server returned:", errorData || res.statusText);
-             setMessages([{
-               role: 'bot',
-               text: `Initialization Error: ${errorData?.detail || res.statusText}`,
-               time: new Date().toISOString()
-             }]);
-          }
-        } catch (err) {
-          console.error('Failed to load chat history:', err);
+    // ── Helper: load profile ─────────────────────────────────────────
+    const loadProfile = async () => {
+      try {
+        const r = await apiFetch('/api/user/profile', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (r.status === 401) { handleSessionExpired(); return; }
+        if (!r.ok) return;
+        const profile = await r.json();
+        if (profile.email) setUserEmail(profile.email);
+        if (profile.avatar_url) setUserAvatar(profile.avatar_url);
+        if (profile.bot_avatar_url) setMyAllyAvatar(profile.bot_avatar_url);
+        setUserProfile(profile);
+      } catch (_) { /* non-critical */ }
+    };
+
+    // ── Helper: redirect when session expires ────────────────────────
+    const handleSessionExpired = () => {
+      console.warn('🔒 Session expired — redirecting to login');
+      localStorage.removeItem('myally_token');
+      localStorage.removeItem('myally_explicit_login');
+      setAuthToken(null);
+      navigate('/');
+    };
+
+    // ── Helper: wake up HF backend then load history ─────────────────
+    const fetchAllHistory = async () => {
+      // Ping health to wake up the HuggingFace Space (cold start)
+      try {
+        await apiFetch('/api/health', { signal: AbortSignal.timeout(30000) });
+      } catch (_) {
+        // If health ping itself fails, backend is unreachable — show empty chat
+        console.warn('Backend unreachable on health ping, showing empty chat.');
+        return;
+      }
+
+      try {
+        const res = await apiFetch('/api/chats/all', {
+          headers: { 'Authorization': `Bearer ${authToken}` },
+          signal: AbortSignal.timeout(30000)
+        });
+
+        if (res.status === 401) {
+          handleSessionExpired();
+          return;
         }
-      };
-      fetchAllHistory();
-    }
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.session_id) setSessionId(data.session_id);
+          if (data.messages) {
+            const loadedMessages = data.messages.map(m => ({
+              role: m.role,
+              text: m.content,
+              time: m.created_at
+            }));
+            setMessages(loadedMessages);
+          }
+        } else {
+          // Non-401 server error — log silently, don't show error in chat
+          const errorData = await res.json().catch(() => null);
+          console.error('Failed to load chat history:', errorData || res.statusText);
+          // Show empty chat — user can still type
+        }
+      } catch (err) {
+        // Network error / timeout — cold start likely. Show empty chat.
+        console.warn('Failed to load chat history (may be cold start):', err.message);
+      }
+    };
+
+    loadProfile();
+    fetchAllHistory();
   }, [authToken]);
 
   const handleSendMessage = async (textOverride) => {
@@ -231,7 +259,11 @@ function ChatApp({ authToken, setAuthToken }) {
 
       if (response.status === 401) {
         console.error('Session expired, logging out...');
+        localStorage.removeItem('myally_token');
+        localStorage.removeItem('myally_explicit_login');
         setAuthToken(null);
+        navigate('/');
+
         return;
       }
 
