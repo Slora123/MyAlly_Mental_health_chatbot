@@ -154,9 +154,37 @@ function ChatApp({ authToken, setAuthToken }) {
     document.body.className = 'theme-calm';
   }
 
+  // ── Cache helpers ──────────────────────────────────────────────────────────
+  const CACHE_KEY = `myally_chat_cache_${auth.currentUser?.uid || 'anon'}`;
+
+  const saveChatCache = (msgs, sid) => {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ messages: msgs, session_id: sid, ts: Date.now() }));
+    } catch (_) {}
+  };
+
+  const loadChatCache = () => {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const cached = JSON.parse(raw);
+      // Only use cache if it's less than 24 hours old
+      if (Date.now() - cached.ts > 86400000) return null;
+      return cached;
+    } catch (_) { return null; }
+  };
+
   // Load initial session on mount
   useEffect(() => {
     if (!authToken) return;
+
+    // ── Step 1: Show cached chats INSTANTLY ────────────────────────
+    const cached = loadChatCache();
+    if (cached && cached.messages && cached.messages.length > 0) {
+      setMessages(cached.messages);
+      if (cached.session_id) setSessionId(cached.session_id);
+      console.log(`⚡ Loaded ${cached.messages.length} messages from cache instantly.`);
+    }
 
     // ── Helper: redirect when session expires ──────────────────────
     const handleSessionExpired = () => {
@@ -167,20 +195,7 @@ function ChatApp({ authToken, setAuthToken }) {
       navigate('/');
     };
 
-    // ── Helper: apply loaded history to state ──────────────────────
-    const applyHistory = (data) => {
-      if (data.session_id) setSessionId(data.session_id);
-      if (data.messages && data.messages.length > 0) {
-        const loadedMessages = data.messages.map(m => ({
-          role: m.role,
-          text: m.content,
-          time: m.created_at
-        }));
-        setMessages(loadedMessages);
-      }
-    };
-
-    // ── Fetch history — no blocking health ping ────────────────────
+    // ── Step 2: Fetch fresh history in background ──────────────────
     const fetchHistory = async (isRetry = false) => {
       try {
         const res = await apiFetch('/api/chats/all', {
@@ -190,15 +205,20 @@ function ChatApp({ authToken, setAuthToken }) {
         if (res.status === 401) { handleSessionExpired(); return; }
         if (res.ok) {
           const data = await res.json();
-          applyHistory(data);
+          if (data.session_id) setSessionId(data.session_id);
+          if (data.messages && data.messages.length > 0) {
+            const loadedMessages = data.messages.map(m => ({
+              role: m.role, text: m.content, time: m.created_at
+            }));
+            setMessages(loadedMessages);
+            // Update cache with fresh data
+            saveChatCache(loadedMessages, data.session_id);
+          }
         }
       } catch (err) {
         if (!isRetry) {
-          // Cold start — backend is waking up. Retry silently after 8s.
           console.warn('History fetch failed (cold start?), retrying in 8s...', err.message);
           setTimeout(() => fetchHistory(true), 8000);
-        } else {
-          console.warn('History fetch retry also failed. Showing empty chat.', err.message);
         }
       }
     };
@@ -220,9 +240,16 @@ function ChatApp({ authToken, setAuthToken }) {
       } catch (_) { /* non-critical */ }
     };
 
-    // Run both in parallel — don't await one before starting the other
+    // ── Step 3: Keep-alive — ping every 4 min so HF never sleeps ───
+    const keepAlive = setInterval(() => {
+      apiFetch('/api/health').catch(() => {});
+      console.log('💓 Keep-alive ping sent');
+    }, 4 * 60 * 1000); // 4 minutes
+
     loadProfile();
     fetchHistory();
+
+    return () => clearInterval(keepAlive);
   }, [authToken]);
 
 
@@ -278,7 +305,12 @@ function ChatApp({ authToken, setAuthToken }) {
         text: botText,
         time: new Date().toISOString(),
       };
-      setMessages((prev) => [...prev, botMsg]);
+      setMessages((prev) => {
+        const updated = [...prev, botMsg];
+        // Keep cache up-to-date after every reply
+        saveChatCache(updated, sessionId);
+        return updated;
+      });
     } catch (err) {
       console.error('Chat error:', err);
     } finally {
