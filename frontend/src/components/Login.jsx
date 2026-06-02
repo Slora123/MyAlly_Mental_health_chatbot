@@ -190,38 +190,37 @@ export default function Login({ setAuthToken }) {
           @media (max-width: 900px) {
             .login-wrapper {
               overflow-y: auto !important;
-              padding: 20px 15px !important; /* Added side space */
+              padding: 24px 16px !important;
+              min-height: 100dvh !important;
+              align-items: flex-start !important;
+              box-sizing: border-box !important;
             }
             .role-selection-card {
               flex-direction: column !important;
               height: auto !important;
+              min-height: unset !important;
               width: 100% !important;
+              max-width: 100% !important;
               border-radius: 32px !important;
-              padding-bottom: 20px;
               margin: 0 auto;
+              overflow: visible !important;
             }
             .role-grid {
-              grid-template-columns: 1fr !important; /* Stack Student/Counselor vertically */
+              grid-template-columns: 1fr !important;
             }
             .login-image-side {
-              display: block !important;
-              height: 200px !important;
-              width: 100% !important;
-              background-size: cover !important;
-              background-position: center !important;
-              border-radius: 0 0 32px 32px !important;
-              order: 2; /* Move image below text on mobile */
+              display: none !important;
             }
             .login-text-side {
-              padding: 40px 24px !important;
+              padding: 40px 28px 32px !important;
               order: 1;
             }
             .auth-card {
-              margin: 0 15px !important; /* Space from left and right */
+              margin: 0 !important;
               padding: 40px 24px !important;
             }
             h1 {
-              font-size: 2.5rem !important;
+              font-size: 2.8rem !important;
             }
             p {
               font-size: 1.1rem !important;

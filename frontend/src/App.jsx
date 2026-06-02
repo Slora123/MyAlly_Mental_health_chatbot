@@ -158,11 +158,57 @@ function ChatApp({ authToken, setAuthToken }) {
   useEffect(() => {
     if (!authToken) return;
 
-    // ── Helper: load profile ─────────────────────────────────────────
+    // ── Helper: redirect when session expires ──────────────────────
+    const handleSessionExpired = () => {
+      console.warn('🔒 Session expired — redirecting to login');
+      localStorage.removeItem('myally_token');
+      localStorage.removeItem('myally_explicit_login');
+      setAuthToken(null);
+      navigate('/');
+    };
+
+    // ── Helper: apply loaded history to state ──────────────────────
+    const applyHistory = (data) => {
+      if (data.session_id) setSessionId(data.session_id);
+      if (data.messages && data.messages.length > 0) {
+        const loadedMessages = data.messages.map(m => ({
+          role: m.role,
+          text: m.content,
+          time: m.created_at
+        }));
+        setMessages(loadedMessages);
+      }
+    };
+
+    // ── Fetch history — no blocking health ping ────────────────────
+    const fetchHistory = async (isRetry = false) => {
+      try {
+        const res = await apiFetch('/api/chats/all', {
+          headers: { 'Authorization': `Bearer ${authToken}` },
+          signal: AbortSignal.timeout(25000)
+        });
+        if (res.status === 401) { handleSessionExpired(); return; }
+        if (res.ok) {
+          const data = await res.json();
+          applyHistory(data);
+        }
+      } catch (err) {
+        if (!isRetry) {
+          // Cold start — backend is waking up. Retry silently after 8s.
+          console.warn('History fetch failed (cold start?), retrying in 8s...', err.message);
+          setTimeout(() => fetchHistory(true), 8000);
+        } else {
+          console.warn('History fetch retry also failed. Showing empty chat.', err.message);
+        }
+      }
+    };
+
+    // ── Fetch profile ──────────────────────────────────────────────
     const loadProfile = async () => {
       try {
         const r = await apiFetch('/api/user/profile', {
-          headers: { 'Authorization': `Bearer ${authToken}` }
+          headers: { 'Authorization': `Bearer ${authToken}` },
+          signal: AbortSignal.timeout(25000)
         });
         if (r.status === 401) { handleSessionExpired(); return; }
         if (!r.ok) return;
@@ -174,63 +220,11 @@ function ChatApp({ authToken, setAuthToken }) {
       } catch (_) { /* non-critical */ }
     };
 
-    // ── Helper: redirect when session expires ────────────────────────
-    const handleSessionExpired = () => {
-      console.warn('🔒 Session expired — redirecting to login');
-      localStorage.removeItem('myally_token');
-      localStorage.removeItem('myally_explicit_login');
-      setAuthToken(null);
-      navigate('/');
-    };
-
-    // ── Helper: wake up HF backend then load history ─────────────────
-    const fetchAllHistory = async () => {
-      // Ping health to wake up the HuggingFace Space (cold start)
-      try {
-        await apiFetch('/api/health', { signal: AbortSignal.timeout(30000) });
-      } catch (_) {
-        // If health ping itself fails, backend is unreachable — show empty chat
-        console.warn('Backend unreachable on health ping, showing empty chat.');
-        return;
-      }
-
-      try {
-        const res = await apiFetch('/api/chats/all', {
-          headers: { 'Authorization': `Bearer ${authToken}` },
-          signal: AbortSignal.timeout(30000)
-        });
-
-        if (res.status === 401) {
-          handleSessionExpired();
-          return;
-        }
-
-        if (res.ok) {
-          const data = await res.json();
-          if (data.session_id) setSessionId(data.session_id);
-          if (data.messages) {
-            const loadedMessages = data.messages.map(m => ({
-              role: m.role,
-              text: m.content,
-              time: m.created_at
-            }));
-            setMessages(loadedMessages);
-          }
-        } else {
-          // Non-401 server error — log silently, don't show error in chat
-          const errorData = await res.json().catch(() => null);
-          console.error('Failed to load chat history:', errorData || res.statusText);
-          // Show empty chat — user can still type
-        }
-      } catch (err) {
-        // Network error / timeout — cold start likely. Show empty chat.
-        console.warn('Failed to load chat history (may be cold start):', err.message);
-      }
-    };
-
+    // Run both in parallel — don't await one before starting the other
     loadProfile();
-    fetchAllHistory();
+    fetchHistory();
   }, [authToken]);
+
 
   const handleSendMessage = async (textOverride) => {
     const text = textOverride || inputText;
