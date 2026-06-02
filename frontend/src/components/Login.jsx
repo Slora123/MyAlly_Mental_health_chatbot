@@ -81,12 +81,14 @@ export default function Login({ setAuthToken }) {
     return (
       <div className="login-wrapper" style={{
         background: 'linear-gradient(135deg, #f3e8ff 0%, #fce7f3 50%, #fff1f1 100%)',
-        minHeight: '100vh',
+        minHeight: '100dvh',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         fontFamily: "'Outfit', sans-serif",
-        overflow: 'hidden'
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        boxSizing: 'border-box',
       }}>
         <div className="role-selection-card" style={{
           display: 'flex', width: '92%', maxWidth: '1200px', height: '80vh',
@@ -189,11 +191,8 @@ export default function Login({ setAuthToken }) {
           
           @media (max-width: 900px) {
             .login-wrapper {
-              overflow-y: auto !important;
-              padding: 24px 16px !important;
-              min-height: 100dvh !important;
               align-items: flex-start !important;
-              box-sizing: border-box !important;
+              padding: 24px 16px 40px !important;
             }
             .role-selection-card {
               flex-direction: column !important;
@@ -201,9 +200,10 @@ export default function Login({ setAuthToken }) {
               min-height: unset !important;
               width: 100% !important;
               max-width: 100% !important;
-              border-radius: 32px !important;
-              margin: 0 auto;
+              border-radius: 28px !important;
               overflow: visible !important;
+              margin: 0 auto;
+              box-shadow: 0 20px 60px -10px rgba(253, 29, 29, 0.1) !important;
             }
             .role-grid {
               grid-template-columns: 1fr !important;
@@ -212,7 +212,7 @@ export default function Login({ setAuthToken }) {
               display: none !important;
             }
             .login-text-side {
-              padding: 40px 28px 32px !important;
+              padding: 40px 28px 36px !important;
               order: 1;
             }
             .auth-card {
