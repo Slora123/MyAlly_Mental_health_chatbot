@@ -25,6 +25,25 @@ function resolveAvatar(value) {
 }
 import './App.css';
 
+// ── Chat cache helpers (module-level, not recreated on render) ──────────────
+function saveChatCache(msgs, sid, uid) {
+  try {
+    const key = `myally_chat_cache_${uid || 'anon'}`;
+    localStorage.setItem(key, JSON.stringify({ messages: msgs, session_id: sid, ts: Date.now() }));
+  } catch (_) {}
+}
+function loadChatCache(uid) {
+  try {
+    const key = `myally_chat_cache_${uid || 'anon'}`;
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const cached = JSON.parse(raw);
+    if (Date.now() - cached.ts > 86400000) return null; // expire after 24h
+    return cached;
+  } catch (_) { return null; }
+}
+
+
 export default function App() {
   const navigate = useNavigate();
   // Use sessionStorage so each browser tab has its own independent auth state.
@@ -122,12 +141,20 @@ async function handleLogout(setAuthToken) {
 function ChatApp({ authToken, setAuthToken }) {
 
   const navigate = useNavigate();
-  const [messages, setMessages] = useState([]);
-
+  const uid = auth.currentUser?.uid || 'anon';
+  const [messages, setMessages] = useState(() => {
+    // Load from cache synchronously so first render shows chats immediately
+    const cached = loadChatCache(auth.currentUser?.uid);
+    return cached?.messages || [];
+  });
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [theme, setTheme] = useState('calm');
-  const [sessionId, setSessionId] = useState(null);
+  const [sessionId, setSessionId] = useState(() => {
+    const cached = loadChatCache(auth.currentUser?.uid);
+    return cached?.session_id || null;
+  });
   const [userEmail, setUserEmail] = useState(auth.currentUser?.email || '');
   const [userProfile, setUserProfile] = useState(null);
   
@@ -154,71 +181,45 @@ function ChatApp({ authToken, setAuthToken }) {
     document.body.className = 'theme-calm';
   }
 
-  // ── Cache helpers ──────────────────────────────────────────────────────────
-  const CACHE_KEY = `myally_chat_cache_${auth.currentUser?.uid || 'anon'}`;
-
-  const saveChatCache = (msgs, sid) => {
-    try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ messages: msgs, session_id: sid, ts: Date.now() }));
-    } catch (_) {}
-  };
-
-  const loadChatCache = () => {
-    try {
-      const raw = localStorage.getItem(CACHE_KEY);
-      if (!raw) return null;
-      const cached = JSON.parse(raw);
-      // Only use cache if it's less than 24 hours old
-      if (Date.now() - cached.ts > 86400000) return null;
-      return cached;
-    } catch (_) { return null; }
-  };
 
   // Load initial session on mount
   useEffect(() => {
     if (!authToken) return;
 
-    // ── Step 1: Show cached chats INSTANTLY ────────────────────────
-    const cached = loadChatCache();
-    if (cached && cached.messages && cached.messages.length > 0) {
-      setMessages(cached.messages);
-      if (cached.session_id) setSessionId(cached.session_id);
-      console.log(`⚡ Loaded ${cached.messages.length} messages from cache instantly.`);
-    }
-
-    // ── Helper: redirect when session expires ──────────────────────
     const handleSessionExpired = () => {
-      console.warn('🔒 Session expired — redirecting to login');
+      console.warn('\ud83d\udd12 Session expired \u2014 redirecting to login');
       localStorage.removeItem('myally_token');
       localStorage.removeItem('myally_explicit_login');
       setAuthToken(null);
       navigate('/');
     };
 
-    // ── Step 2: Fetch fresh history in background ──────────────────
-    const fetchHistory = async (isRetry = false) => {
+    // ── Fetch fresh history — fast timeouts, multi-retry ─────────────
+    const fetchHistory = async (attempt = 1) => {
       try {
         const res = await apiFetch('/api/chats/all', {
           headers: { 'Authorization': `Bearer ${authToken}` },
-          signal: AbortSignal.timeout(25000)
+          signal: AbortSignal.timeout(15000) // 15s — fail fast
         });
         if (res.status === 401) { handleSessionExpired(); return; }
         if (res.ok) {
           const data = await res.json();
           if (data.session_id) setSessionId(data.session_id);
           if (data.messages && data.messages.length > 0) {
-            const loadedMessages = data.messages.map(m => ({
-              role: m.role, text: m.content, time: m.created_at
-            }));
-            setMessages(loadedMessages);
-            // Update cache with fresh data
-            saveChatCache(loadedMessages, data.session_id);
+            const loaded = data.messages.map(m => ({ role: m.role, text: m.content, time: m.created_at }));
+            setMessages(loaded);
+            saveChatCache(loaded, data.session_id, uid);
           }
         }
+        setIsHistoryLoading(false);
       } catch (err) {
-        if (!isRetry) {
-          console.warn('History fetch failed (cold start?), retrying in 8s...', err.message);
-          setTimeout(() => fetchHistory(true), 8000);
+        if (attempt < 4) {
+          // Retry up to 3 more times every 5s — backend waking up
+          console.warn(`History fetch attempt ${attempt} failed, retry in 5s...`, err.message);
+          setTimeout(() => fetchHistory(attempt + 1), 5000);
+        } else {
+          console.warn('All history fetch attempts failed. Showing empty chat.');
+          setIsHistoryLoading(false);
         }
       }
     };
@@ -228,7 +229,7 @@ function ChatApp({ authToken, setAuthToken }) {
       try {
         const r = await apiFetch('/api/user/profile', {
           headers: { 'Authorization': `Bearer ${authToken}` },
-          signal: AbortSignal.timeout(25000)
+          signal: AbortSignal.timeout(15000)
         });
         if (r.status === 401) { handleSessionExpired(); return; }
         if (!r.ok) return;
@@ -240,11 +241,10 @@ function ChatApp({ authToken, setAuthToken }) {
       } catch (_) { /* non-critical */ }
     };
 
-    // ── Step 3: Keep-alive — ping every 4 min so HF never sleeps ───
+    // ── Keep-alive — ping every 4 min so HF never sleeps ──────────
     const keepAlive = setInterval(() => {
       apiFetch('/api/health').catch(() => {});
-      console.log('💓 Keep-alive ping sent');
-    }, 4 * 60 * 1000); // 4 minutes
+    }, 4 * 60 * 1000);
 
     loadProfile();
     fetchHistory();
@@ -308,7 +308,7 @@ function ChatApp({ authToken, setAuthToken }) {
       setMessages((prev) => {
         const updated = [...prev, botMsg];
         // Keep cache up-to-date after every reply
-        saveChatCache(updated, sessionId);
+        saveChatCache(updated, sessionId, uid);
         return updated;
       });
     } catch (err) {
@@ -362,10 +362,27 @@ function ChatApp({ authToken, setAuthToken }) {
             setUserAvatar={(key) => { setUserAvatar(key); handleSaveProfile({ avatar_url: key }); }}
           />
           <main className="chat-container" ref={chatContainerRef}>
-            {messages.length === 0 && (
+            {/* Loading banner — only shown when NO cache and still fetching */}
+            {isHistoryLoading && messages.length === 0 && (
+              <div style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                justifyContent: 'center', padding: '40px 20px', gap: '12px',
+                color: '#94a3b8', fontFamily: "'Outfit', sans-serif"
+              }}>
+                <div style={{
+                  width: '36px', height: '36px', borderRadius: '50%',
+                  border: '3px solid rgba(253,29,29,0.15)',
+                  borderTopColor: '#fd1d1d',
+                  animation: 'spin 0.8s linear infinite'
+                }} />
+                <p style={{ fontSize: '0.95rem', margin: 0 }}>Loading your chats...</p>
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+              </div>
+            )}
+            {!isHistoryLoading && messages.length === 0 && (
               <WelcomeBanner onChipClick={(text) => handleSendMessage(text)} />
             )}
-            {messages.map((msg, i) => (
+            {messages.length > 0 && messages.map((msg, i) => (
               <MessageBubble 
                 key={i} 
                 item={msg} 

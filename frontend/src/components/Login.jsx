@@ -1,14 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth, googleProvider } from '../firebase';
 import { loginMockup } from '../assets/images.js';
+import { apiFetch } from '../api.js';
 
 export default function Login({ setAuthToken }) {
   const navigate = useNavigate();
   const [role, setRole] = useState(null); // 'student' or 'admin'
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [statusMsg, setStatusMsg] = useState('');
+
+  // 🔥 Wake up the HF Space backend immediately when login page loads.
+  // This gives it 30-60s to boot while the user reads and authenticates.
+  useEffect(() => {
+    const wakeUp = () => apiFetch('/api/health').catch(() => {});
+    wakeUp();
+    // Ping again after 30s in case it needed more time
+    const timer = setTimeout(wakeUp, 30000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleGoogleLogin = async (mode) => {
     if (isLoggingIn) return;
