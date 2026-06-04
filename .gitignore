@@ -46,5 +46,7 @@ database/mhqa-main/
 !*.jpg
 !*.jpeg
 
-
-to_Be_done.txthf_backend/
+# --- Local / IDE ---
+.vscode/
+hf_backend/
+to_Be_done.txt
