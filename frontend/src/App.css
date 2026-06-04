@@ -100,6 +100,44 @@ body.theme-night .app-wrapper {
 }
 
 /* ===========================
+   Chat Date Separator
+   =========================== */
+.chat-date-separator {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+  position: sticky;
+  top: 10px;
+  z-index: 20;
+}
+
+.chat-date-separator span {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+/* Adjust for dark themes */
+body.theme-night .chat-date-separator span {
+  background: rgba(30, 27, 75, 0.7);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.theme-angry .chat-date-separator span {
+  background: rgba(127, 29, 29, 0.7);
+  color: #fecaca;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ===========================
    Input Area
    =========================== */
 .input-area {

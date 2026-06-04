@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Fragment } from 'react';
 import { apiFetch } from './api';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -41,6 +41,30 @@ function loadChatCache(uid) {
     if (Date.now() - cached.ts > 86400000) return null; // expire after 24h
     return cached;
   } catch (_) { return null; }
+}
+
+// ── Date Formatting Helpers ───────────────────────────────────────────
+function formatChatDate(dateString) {
+  if (!dateString) return null;
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return null;
+
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const isSameDay = (d1, d2) => d1.getDate() === d2.getDate() &&
+                                d1.getMonth() === d2.getMonth() &&
+                                d1.getFullYear() === d2.getFullYear();
+
+  if (isSameDay(date, today)) {
+    return 'Today';
+  } else if (isSameDay(date, yesterday)) {
+    return 'Yesterday';
+  } else {
+    const options = { weekday: 'short', day: 'numeric', month: 'short' };
+    return date.toLocaleDateString('en-US', options);
+  }
 }
 
 // ── Profile cache helpers ──────────────────────────────────────────────
@@ -402,16 +426,28 @@ function ChatApp({ authToken, setAuthToken }) {
             {!isHistoryLoading && messages.length === 0 && (
               <WelcomeBanner onChipClick={(text) => handleSendMessage(text)} />
             )}
-            {messages.length > 0 && messages.map((msg, i) => (
-              <MessageBubble 
-                key={i} 
-                item={msg} 
-                theme={theme} 
-                animate={i === messages.length - 1} 
-                botImg={resolveAvatar(myAllyAvatar) || (userProfile?.gender?.toLowerCase() === 'female' ? botFemale : (userProfile?.gender?.toLowerCase() === 'male' ? botMale : '/logo.png'))}
-                userAvatar={resolveAvatar(userAvatar)}
-              />
-            ))}
+            {messages.length > 0 && messages.map((msg, i) => {
+              const currentDateStr = formatChatDate(msg.time);
+              const prevDateStr = i > 0 ? formatChatDate(messages[i - 1].time) : null;
+              const showDateSeparator = currentDateStr !== prevDateStr;
+
+              return (
+                <Fragment key={i}>
+                  {showDateSeparator && currentDateStr && (
+                    <div className="chat-date-separator">
+                      <span>{currentDateStr}</span>
+                    </div>
+                  )}
+                  <MessageBubble 
+                    item={msg} 
+                    theme={theme} 
+                    animate={i === messages.length - 1} 
+                    botImg={resolveAvatar(myAllyAvatar) || (userProfile?.gender?.toLowerCase() === 'female' ? botFemale : (userProfile?.gender?.toLowerCase() === 'male' ? botMale : '/logo.png'))}
+                    userAvatar={resolveAvatar(userAvatar)}
+                  />
+                </Fragment>
+              );
+            })}
             {isTyping && <TypingIndicator theme={theme} botImg={resolveAvatar(myAllyAvatar) || (userProfile?.gender?.toLowerCase() === 'female' ? botFemale : (userProfile?.gender?.toLowerCase() === 'male' ? botMale : '/logo.png'))} />}
 
           </main>

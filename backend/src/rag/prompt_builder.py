@@ -230,6 +230,25 @@ def build_messages(
             f"{proactive_context}\n"
         )
 
+    # Inject Time Awareness
+    from datetime import datetime
+    try:
+        import zoneinfo
+        tz = zoneinfo.ZoneInfo("Asia/Kolkata")
+    except Exception:
+        tz = None
+    current_time_str = datetime.now(tz).strftime("%A, %B %d, %Y, %I:%M %p IST")
+    
+    dynamic_system_prompt += (
+        f"\n\n--- TIME & CONTEXT AWARENESS ---\n"
+        f"CURRENT DATE AND TIME: {current_time_str}\n"
+        "1. You have absolute awareness of today's date and time.\n"
+        "2. If a user's memory or message mentions an event (like an exam, birthday, or meeting) happening on a specific date, AND that date is TODAY or recently past, you SHOULD naturally ask about it (e.g., 'Hey, how did your exam go today?').\n"
+        "3. Wait for the user to initiate the conversation first (like saying 'hi' or 'hello'), then naturally bring up the event.\n"
+        "4. BUT if the user asks a specific question or talks about something else, DO NOT forcefully bring up the event. Address their current message first.\n"
+        "5. ONLY tell the user information when they ask for it. Do not randomly state facts.\n"
+    )
+
     # Inject relevant past memories (semantically matched to current message)
     if relevant_memories:
         mem_lines = "\n".join(f"  - \"{m}\"" for m in relevant_memories)
@@ -237,13 +256,15 @@ def build_messages(
             "\n\n--- LONG-TERM MEMORY: Things this user has shared with you before ---\n"
             "These are real things they told you in past conversations. Use them like a close friend who actually remembers.\n"
             "RULES for using memories:\n"
-            "  1. ONLY use 'I remember...' if the memory is from a PAST conversation. If the user just said it in the current message, do NOT say 'I remember'—just respond to it normally.\n"
-            "  2. NEVER echo back the user's current message as a 'memory'. If a memory is identical to what they just said, IGNORE it.\n"
-            "  3. If a memory is DIRECTLY relevant to what they just said, reference it naturally: \"I remember you said...\", \"Didn't you mention...?\"\n"
-            "  4. NEVER start the response with a memory reference — weave it in naturally mid-sentence.\n"
-            "  5. Pick only the ONE most relevant memory if any. Do NOT dump a list.\n"
-            "  6. CRITICAL: ONLY reference exact things listed below. DO NOT invent or hallucinate past events.\n"
-            f"{mem_lines}\n"
+            "  1. If the user asks a question like 'Do you remember X?' or 'Do you know my favorite Y?', you MUST use the memories below to answer them directly.\n"
+            "  2. Do NOT ask them for the answer if it's already in your memory! Tell them what you remember.\n"
+            "  3. ONLY use 'I remember...' if the memory is from a PAST conversation. If the user just said it in the current message, do NOT say 'I remember'—just respond to it normally.\n"
+            "  4. NEVER echo back the user's current message as a 'memory'. If a memory is identical to what they just said, IGNORE it.\n"
+            "  5. If a memory is DIRECTLY relevant to what they just said, reference it naturally: \"I remember you said...\", \"Didn't you mention...?\"\n"
+            "  6. NEVER start the response with a memory reference — weave it in naturally mid-sentence.\n"
+            "  7. Pick only the ONE most relevant memory if any. Do NOT dump a list.\n"
+            "  8. CRITICAL: ONLY reference exact things listed below. DO NOT invent or hallucinate past events.\n"
+            f"Memories:\n{mem_lines}\n"
         )
 
     # Inject recent memories for personality inference
