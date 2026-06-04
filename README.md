@@ -21,95 +21,142 @@ pinned: false
 - **Glassmorphism UI** with mood-based themes that change automatically based on user message keywords
 
 ### 🧠 Context Awareness & Memory
-- **Remembers past conversations** and maintains chat history for personalized, human-like interactions
+- **Dual-layer memory architecture:** Full encrypted chat history in Firestore + high-level semantic memories in ChromaDB for long-term context (RAG)
+- **Instant chat loading:** Profile and chat history cached in localStorage for zero-flicker return visits
 
 ### 📚 RAG-Based Responses
-- **Uses ChromaDB** with verified resources to provide accurate and reliable guidance
+- **Uses ChromaDB** with verified empathy and knowledge documents to provide accurate and reliable guidance
 
 ### 🛡️ Real-time Crisis Escalation
 - **Detects high-risk intent** and sends instant alerts to counselors via the web portal
+- Crisis alerts are stored in Firestore (`crisis_alerts` collection) and persist across server restarts
 
-### 🔒 Secure Authentication
+### 🔒 Secure Authentication & Encryption
 - **Firebase + JWT-based login** ensuring user privacy and secure access
+- **AES-256 chat encryption:** All messages are encrypted server-side using Fernet (AES-128-CBC + HMAC-SHA256) before being stored in Firestore. The frontend never sees raw ciphertext.
+
+---
+
+## 🏗️ Architecture
+
+```
+┌──────────────────────┐       ┌─────────────────────────┐
+│  Vercel (Frontend)   │──────▶│  HF Spaces (Backend)    │
+│  React + Vite        │  API  │  FastAPI + Uvicorn       │
+└──────────────────────┘       └───────────┬─────────────┘
+                                           │
+                    ┌──────────────────────┼─────────────────────┐
+                    ▼                      ▼                     ▼
+           ┌──────────────┐      ┌──────────────────┐   ┌──────────────┐
+           │   Firestore  │      │    ChromaDB       │   │  HF Inference│
+           │  (Encrypted  │      │  (RAG / Semantic  │   │  API (Qwen   │
+           │  Chat Logs)  │      │   Memory)         │   │  2.5 7B)     │
+           └──────────────┘      └──────────────────┘   └──────────────┘
+```
 
 ---
 
 ## 🛠️ Technology Stack
 
-- **Backend:** FastAPI (Python), Uvicorn
-- **Frontend:** React + Vite, CSS3 (Vanilla), React Router
-- **AI/LLM:** HuggingFace Inference API (Qwen 2.5 7B Instruct)
-- **Primary Database:** Google Firestore (Persistence)
-- **RAG / Vector DB:** ChromaDB (Persistence & Memory)
-- **Auth:** Firebase Authentication
+| Layer          | Technology                                          |
+|----------------|-----------------------------------------------------|
+| **Frontend**   | React + Vite, Vanilla CSS, React Router             |
+| **Backend**    | FastAPI (Python), Uvicorn                           |
+| **LLM**        | HuggingFace Inference API (Qwen 2.5 7B Instruct)   |
+| **Auth**       | Firebase Authentication (Google OAuth + JWT)        |
+| **Primary DB** | Google Firestore (encrypted persistent chat logs)   |
+| **RAG / Memory** | ChromaDB (local vector embeddings)               |
+| **Encryption** | AES-256 Fernet (cryptography library)               |
+| **Deployment** | Vercel (frontend) + HF Spaces via Docker (backend)  |
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Running Locally
 
 ### 1. Prerequisites
 - Python 3.9+
 - Node.js & npm
 
-### 2. Installation
+### 2. Clone & Install
 
-**Backend Setup:**
+**Backend:**
 ```bash
-cd backend
-python -m venv ../.venv
-source ../.venv/bin/activate
-pip install -r requirements.txt
+cd /path/to/MyAlly
+/Library/Developer/CommandLineTools/usr/bin/python3 -m venv .venv
+source .venv/bin/activate
+pip install -r backend/requirements.txt
 ```
 
-**Frontend Setup:**
+**Frontend:**
 ```bash
 cd frontend
 npm install
 ```
 
 ### 3. Configuration (`.env`)
-Create a **single `.env` file** in the project root with the following keys:
+Create a **single `.env` file** in the project root:
 
 ```env
 # AI Brain
-HUGGINGFACE_TOKEN="your_hf_token"
+HUGGINGFACE_TOKEN=your_hf_token
 
 # Firebase (Frontend)
-VITE_FIREBASE_API_KEY="..."
-VITE_FIREBASE_AUTH_DOMAIN="..."
-VITE_FIREBASE_PROJECT_ID="..."
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
 
 # Firebase Admin (Backend)
-FIREBASE_CREDENTIALS_PATH="firebase-key.json"
+FIREBASE_CREDENTIALS_PATH=firebase-key.json
+DEBUG_AUTH=false
+
+# Encryption Key for Chat History (AES-256 Fernet)
+# Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+CHAT_ENCRYPTION_KEY=your_generated_key
 ```
 
-### 4. Build the RAG Index
-Before running the app, index the empathy and knowledge datasets:
+### 4. Running the App
+
+**Option A — One command (recommended for testing):**
 ```bash
-cd backend
-python build_rag_index.py
+bash start.sh
 ```
+Builds the frontend and starts the backend at **http://localhost:8000**.
 
-### 5. Running the App
-**Start Backend:**
+**Option B — Separate processes (recommended for development, hot-reload):**
+
+Terminal 1 (Backend):
 ```bash
-cd backend
-python -m src.app.chat_api
+source .venv/bin/activate
+PYTHONPATH=backend uvicorn src.app.chat_api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-**Start Frontend:**
+Terminal 2 (Frontend):
 ```bash
 cd frontend
 npm run dev
 ```
+Frontend available at **http://localhost:5173**, API proxied to port 8000.
+
+---
+
+## ☁️ Deployment
+
+| Component  | Platform      | Notes                                                                |
+|------------|---------------|----------------------------------------------------------------------|
+| Frontend   | Vercel        | Auto-deploys from `main` branch. No backend secrets needed.         |
+| Backend    | HF Spaces     | Docker-based. Add `CHAT_ENCRYPTION_KEY` as a **Secret** in Space settings (Settings → Variables and secrets). |
 
 ---
 
 ## 🧑‍💼 Admin Mode
-To access the **Counselor Dashboard**, navigate to `/admin` in your browser. This panel allows professional counselors to monitor flagged crisis situations in real-time.
+To access the **Counselor Dashboard**, navigate to `/admin` in your browser. This panel allows professional counselors to monitor flagged crisis situations in real-time. Crisis alerts are stored persistently in Firestore and survive server restarts.
 
 ---
 
 ## 🔒 Security & Privacy
-- **Privacy First:** The counselor cannot see your private chats unless a high-risk situation is detected by the AI.
+- **End-to-end encrypted storage:** All chat messages are encrypted with AES-256 before being stored in Firestore. The encryption key lives only in backend environment secrets — never in source code or the frontend.
+- **Privacy First:** Counselors cannot see your private chats unless a high-risk crisis situation is detected by the AI.
 - **Support-Only:** MyAlly is a support tool, not a clinical diagnosis or therapy service. Always consult a professional for medical advice.
