@@ -114,3 +114,38 @@ def get_current_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch or create user profile: {str(e)}",
         )
+
+
+# ── Admin / Counselor guard ───────────────────────────────────────────────────
+
+def get_admin_user(
+    user: dict = Depends(get_current_user)
+) -> dict:
+    """
+    Dependency that allows access only to whitelisted counselor emails.
+
+    Configure allowed emails in .env (or HF Space secrets):
+        COUNSELOR_EMAILS=counselor@college.edu,backup@college.edu
+
+    Returns the user dict if authorised, raises HTTP 403 otherwise.
+    """
+    raw = os.getenv("COUNSELOR_EMAILS", "").strip()
+    if not raw:
+        # If no whitelist is configured, deny everyone for safety
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access is disabled. Set COUNSELOR_EMAILS in server environment.",
+        )
+
+    allowed = {e.strip().lower() for e in raw.split(",") if e.strip()}
+    user_email = (user.get("email") or "").lower()
+
+    if user_email not in allowed:
+        print(f"🚫 Unauthorised admin attempt by: {user_email}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied. You are not authorised as a counselor.",
+        )
+
+    print(f"✅ Admin access granted to: {user_email}")
+    return user

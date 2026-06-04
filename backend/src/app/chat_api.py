@@ -18,7 +18,7 @@ import uuid
 from typing import Optional
 
 from src.app.service import chat_logic
-from src.app.auth import get_current_user
+from src.app.auth import get_current_user, get_admin_user
 from . import vector_db, firestore_db
 from .encryption import encrypt_text, decrypt_text
 
@@ -188,16 +188,16 @@ async def chat(req: ChatRequest, user: dict = Depends(get_current_user)):
 # ── Admin/Counselor Endpoints ──────────────────────────────────────────────
 
 @app.get("/api/admin/alerts")
-async def get_alerts():
-    """Fetches all crisis alerts for the counselor."""
+async def get_alerts(admin: dict = Depends(get_admin_user)):
+    """Fetches all crisis alerts for the counselor. Requires authorised counselor login."""
     from src.app import counselor_service
     alerts = counselor_service.get_all_alerts()
     return {"alerts": alerts}
 
 
 @app.post("/api/admin/resolve/{alert_id}")
-async def resolve_alert(alert_id: str):
-    """Marks a crisis alert as resolved."""
+async def resolve_alert(alert_id: str, admin: dict = Depends(get_admin_user)):
+    """Marks a crisis alert as resolved. Requires authorised counselor login."""
     from src.app import counselor_service
     success = counselor_service.resolve_alert(alert_id)
     if success:
