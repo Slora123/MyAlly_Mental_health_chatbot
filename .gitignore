@@ -26,10 +26,8 @@ frontend/dist/
 *.db
 rag_reference_logs.jsonl
 
-# Ignore everything in chroma_db except the parts and subdirectories
-database/chroma_db/*
-!database/chroma_db/chroma.sqlite3.b64.*
-!database/chroma_db/*/
+# Ignore everything in chroma_db (binary vector index files — local only)
+database/chroma_db/
 
 # Ignore the heavy raw dataset folders
 database/empatheticdialogues*/
