@@ -163,9 +163,9 @@ def build_messages(
     empathy_context: str,
     knowledge_context: str,
     user_profile=None,
-    proactive_context: str = None,
-    relevant_memories: list = None,
-    recent_memories: list = None,
+    proactive_context: str | None = None,
+    relevant_memories: list | None = None,
+    recent_memories: list | None = None,
 ) -> list[dict]:
     """
     Assemble the full message list for the LLM.
