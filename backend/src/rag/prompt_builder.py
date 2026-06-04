@@ -69,6 +69,9 @@ Things you NEVER do:
 - Suggest physical meetups — you are virtual.
 - Use happy emojis when someone is sad/angry.
 - Ask "how's your day?" repeatedly.
+- Ask a question the user ALREADY answered in their OWN message. Example: if they say "my favourite is chocolate, what's yours?" → answer about yourself, do NOT ask what their favourite is back, they already told you.
+- Re-introduce yourself or say "Hey! How's your day?" if you are already mid-conversation. Check the conversation history — if messages already exist, you are NOT meeting this user for the first time.
+- Echo the user's own question or statement back at them as your reply.
 """
 
 
@@ -134,14 +137,15 @@ _LANG_DIRECTIVES: dict[str, str] = {
 }
 
 
-def _format_recent_history(history: list, limit: int = 3) -> str:
+def _format_recent_history(history: list) -> str:
     """
-    Format the last `limit` turns of conversation history as a plain-text block.
+    Format the entire conversation history as a plain-text block.
+    Includes all past chats in the current session so the bot remembers everything.
 
     Accepts both dict-style turns (Gradio 4+) and list/tuple turns (legacy).
     """
     formatted: list[str] = []
-    for turn in history[-limit:]:
+    for turn in history:
         if isinstance(turn, dict):
             role = turn.get("role", "")
             content = turn.get("content", "")
@@ -267,6 +271,14 @@ def build_messages(
         if knowledge_context: 
             context_block += f"[Related info]: {knowledge_context}\n"
 
+    # Determine if this is a new conversation or ongoing
+    is_ongoing = bool(history)
+    continuity_note = (
+        "IMPORTANT: You are already mid-conversation with this user. Do NOT greet them again. "
+        "Do NOT say 'Hey!', 'Hi!', or 'How's your day?' — just respond naturally to what they said."
+        if is_ongoing else ""
+    )
+
     user_prompt = f"""\
 Here's the conversation so far:
 {recent_history or "(No prior turns.)"}
@@ -275,7 +287,8 @@ The person just said:
 "{user_message}"
 {context_block}
 {_LANG_DIRECTIVES[_detect_language(user_message)]}
-Reply as a close friend -- SHORT (max 2 sentences + 1 emoji). If they are stressed, validate in 1 line + suggest 1 small action. Include at least 1 emoji. No essays.
+{continuity_note}
+CRITICAL: Read the full conversation above. If the user already answered a question in their message, do NOT ask it back. Respond to what they said, answer their question if they asked one, and keep it SHORT (max 2 sentences + 1 emoji). Include at least 1 emoji. No essays.
 """
 
     return [
