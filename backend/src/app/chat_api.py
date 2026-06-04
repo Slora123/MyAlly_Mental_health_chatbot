@@ -9,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -20,6 +20,7 @@ from typing import Optional
 from src.app.service import chat_logic
 from src.app.auth import get_current_user
 from . import vector_db, firestore_db
+from .encryption import encrypt_text, decrypt_text
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -67,7 +68,7 @@ async def get_profile(user: dict = Depends(get_current_user)):
 
 @app.post("/api/user/onboarding")
 async def save_onboarding(req: OnboardingRequest, user: dict = Depends(get_current_user)):
-    profile_data = req.dict(exclude_unset=True)
+    profile_data = req.model_dump(exclude_unset=True)
     updated_user = firestore_db.save_user_profile(user["uid"], profile_data)
     # Also save to vector_db for RAG context (local/ephemeral but useful for current session)
     vector_db.save_user_profile(user["uid"], profile_data)
@@ -96,7 +97,12 @@ async def get_all_chats(user: dict = Depends(get_current_user)):
         
     for s in sessions:
         msgs = firestore_db.get_chat_history(s["id"])
-        all_messages.extend(msgs)
+        # Decrypt each message before adding to the response
+        decrypted_msgs = [
+            {**m, "content": decrypt_text(m["content"])}
+            for m in msgs
+        ]
+        all_messages.extend(decrypted_msgs)
         
     # Sort all messages chronologically
     all_messages.sort(key=lambda x: x["created_at"])
@@ -112,7 +118,12 @@ async def get_chat_history(session_id: str, user: dict = Depends(get_current_use
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     
-    messages = firestore_db.get_chat_history(session_id)
+    raw_messages = firestore_db.get_chat_history(session_id)
+    # Decrypt each message before sending to the frontend
+    messages = [
+        {**m, "content": decrypt_text(m["content"])}
+        for m in raw_messages
+    ]
     return {"session_id": session_id, "title": session["title"], "messages": messages}
 
 @app.post("/chat")
@@ -132,16 +143,19 @@ async def chat(req: ChatRequest, user: dict = Depends(get_current_user)):
             if not session:
                 raise HTTPException(status_code=404, detail="Session not found")
 
-        # Save user message to Firestore (PRIMARY) and ChromaDB (RAG)
-        firestore_db.add_chat_message(session_id, role="user", content=req.message)
+        # Save user message to Firestore (PRIMARY, encrypted) and ChromaDB (RAG, plaintext for semantic search)
+        firestore_db.add_chat_message(session_id, role="user", content=encrypt_text(req.message))
         vector_db.add_chat_message(session_id, role="user", content=req.message)
 
         # Build history format expected by logic: list of [user_msg, bot_msg] pairs
         # We use Firestore for the chat history context to be robust
-        full_history = firestore_db.get_chat_history(session_id)
+        full_history = [
+            {**m, "content": decrypt_text(m["content"])}
+            for m in firestore_db.get_chat_history(session_id)
+        ]
         
-        history_pairs = []
-        current_pair = [None, None]
+        history_pairs: list[list[str | None]] = []
+        current_pair: list[str | None] = [None, None]
         # Exclude the message we just added for the 'history' argument to chat_logic
         for m in full_history[:-1]: 
             if m["role"] == "user":
@@ -157,10 +171,10 @@ async def chat(req: ChatRequest, user: dict = Depends(get_current_user)):
             history_pairs.append(current_pair)
 
         # Call logic
-        reply = chat_logic(req.message, history_pairs, user_profile=user, today=datetime.utcnow())
+        reply = chat_logic(req.message, history_pairs, user_profile=user, today=datetime.now(timezone.utc))
         
-        # Save bot message to both
-        firestore_db.add_chat_message(session_id, role="bot", content=reply)
+        # Save bot message to Firestore (encrypted) and ChromaDB (plaintext for RAG)
+        firestore_db.add_chat_message(session_id, role="bot", content=encrypt_text(reply))
         vector_db.add_chat_message(session_id, role="bot", content=reply)
         
         return {"reply": reply, "session_id": session_id}
@@ -208,3 +222,18 @@ if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

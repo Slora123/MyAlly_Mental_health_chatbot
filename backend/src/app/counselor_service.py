@@ -1,80 +1,78 @@
 """
-backend/src/app/counselor_service.py
-────────────────────────────────────
+hf_backend/src/app/counselor_service.py
+────────────────────────────────────────
 Handles storing and retrieving crisis alerts for the counselor dashboard.
+
+PRODUCTION FIX:
+  Previously used a local 'database/crisis_alerts.json' file, which was wiped
+  on every Hugging Face Space restart — causing silent data loss of crisis alerts.
+
+  Now delegates entirely to Firestore via firestore_db module.
+  Crisis alerts persist across restarts, survive deployments, and support
+  real-time onSnapshot listeners in the counselor dashboard frontend.
+
+  Crisis data is stored UNENCRYPTED in Firestore — counselors must be able
+  to read it immediately without any decryption step.
 """
+from __future__ import annotations
 
-import json
-import os
-from datetime import datetime
-from pathlib import Path
+import logging
+from src.app import firestore_db
 
-# Path to the internal alerts database
-DB_DIR = Path(__file__).resolve().parents[3] / "database"
-ALERTS_FILE = DB_DIR / "crisis_alerts.json"
+logger = logging.getLogger(__name__)
 
-def _ensure_db_exists():
-    """Ensure the database directory and alerts file exist."""
-    DB_DIR.mkdir(parents=True, exist_ok=True)
-    if not ALERTS_FILE.exists():
-        with open(ALERTS_FILE, "w", encoding="utf-8") as f:
-            json.dump([], f)
 
-def save_crisis_alert(summary: str, user_info: str, trigger_message: str):
+def save_crisis_alert(summary: str, user_info: str, trigger_message: str) -> None:
     """
-    Saves a crisis alert to the internal JSON database.
-    
+    Save a crisis alert so counselors can act on it.
+
+    Delegates to firestore_db.save_crisis_alert() which writes to the
+    Firestore 'crisis_alerts' collection. Survives server restarts.
+
     Parameters
     ----------
-    summary         : The AI-generated crisis summary.
-    user_info       : The user's name and contact details.
-    trigger_message : The specific user message that triggered the alert.
+    summary         : AI-generated summary of the crisis severity.
+    user_info       : User's name + contact details (for counselor to reach out).
+    trigger_message : The exact user message that triggered the crisis detection.
     """
-    _ensure_db_exists()
-    
-    alert_entry = {
-        "id": datetime.now().strftime("%Y%m%d%H%M%S%f"),
-        "timestamp": datetime.now().isoformat(),
-        "user_info": user_info,
-        "summary": summary,
-        "trigger_message": trigger_message,
-        "status": "unread", # read, unread, resolved
-        "severity": "high_risk"
-    }
-    
     try:
-        with open(ALERTS_FILE, "r+", encoding="utf-8") as f:
-            alerts = json.load(f)
-            alerts.insert(0, alert_entry) # Add to the top
-            f.seek(0)
-            json.dump(alerts, f, indent=4)
-            f.truncate()
-        print(f"✅ Crisis alert saved internally for {user_info}")
+        alert_id = firestore_db.save_crisis_alert(
+            summary=summary,
+            user_info=user_info,
+            trigger_message=trigger_message,
+        )
+        logger.info(f"✅ [counselor_service] Crisis alert saved (id={alert_id}) for: {user_info}")
     except Exception as e:
-        print(f"❌ Failed to save internal crisis alert: {e}")
+        logger.error(f"❌ [counselor_service] Failed to save crisis alert: {e}")
 
-def get_all_alerts():
-    """Returns all crisis alerts from the database."""
-    _ensure_db_exists()
+
+def get_all_alerts() -> list[dict]:
+    """
+    Fetch all crisis alerts for the counselor dashboard, newest first.
+    Reads from Firestore 'crisis_alerts' collection.
+    """
     try:
-        with open(ALERTS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
+        return firestore_db.get_all_alerts()
+    except Exception as e:
+        logger.error(f"❌ [counselor_service] Failed to fetch alerts: {e}")
         return []
 
-def resolve_alert(alert_id: str):
-    """Marks an alert as resolved."""
-    _ensure_db_exists()
+
+def resolve_alert(alert_id: str) -> bool:
+    """
+    Mark a crisis alert as resolved.
+    Updates the Firestore document status to 'resolved'.
+
+    Parameters
+    ----------
+    alert_id : The Firestore document 'id' field of the alert.
+
+    Returns
+    -------
+    True if the alert was found and updated, False otherwise.
+    """
     try:
-        with open(ALERTS_FILE, "r+", encoding="utf-8") as f:
-            alerts = json.load(f)
-            for alert in alerts:
-                if alert["id"] == alert_id:
-                    alert["status"] = "resolved"
-                    break
-            f.seek(0)
-            json.dump(alerts, f, indent=4)
-            f.truncate()
-        return True
-    except Exception:
+        return firestore_db.resolve_alert(alert_id)
+    except Exception as e:
+        logger.error(f"❌ [counselor_service] Failed to resolve alert {alert_id}: {e}")
         return False

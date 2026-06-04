@@ -43,6 +43,24 @@ function loadChatCache(uid) {
   } catch (_) { return null; }
 }
 
+// ── Profile cache helpers ──────────────────────────────────────────────
+function saveProfileCache(profile, uid) {
+  try {
+    const key = `myally_profile_cache_${uid || 'anon'}`;
+    localStorage.setItem(key, JSON.stringify({ profile, ts: Date.now() }));
+  } catch (_) {}
+}
+function loadProfileCache(uid) {
+  try {
+    const key = `myally_profile_cache_${uid || 'anon'}`;
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const cached = JSON.parse(raw);
+    if (Date.now() - cached.ts > 86400000) return null; // expire after 24h
+    return cached.profile;
+  } catch (_) { return null; }
+}
+
 
 export default function App() {
   const navigate = useNavigate();
@@ -142,25 +160,22 @@ function ChatApp({ authToken, setAuthToken }) {
 
   const navigate = useNavigate();
   const uid = auth.currentUser?.uid || 'anon';
-  const [messages, setMessages] = useState(() => {
-    // Load from cache synchronously so first render shows chats immediately
-    const cached = loadChatCache(auth.currentUser?.uid);
-    return cached?.messages || [];
-  });
+
+  // ── Load from caches synchronously — zero flicker on return visits ───────
+  const cachedProfile = loadProfileCache(auth.currentUser?.uid);
+  const cachedChats   = loadChatCache(auth.currentUser?.uid);
+
+  const [messages, setMessages] = useState(cachedChats?.messages || []);
   const [isHistoryLoading, setIsHistoryLoading] = useState(true);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [theme, setTheme] = useState('calm');
-  const [sessionId, setSessionId] = useState(() => {
-    const cached = loadChatCache(auth.currentUser?.uid);
-    return cached?.session_id || null;
-  });
-  const [userEmail, setUserEmail] = useState(auth.currentUser?.email || '');
-  const [userProfile, setUserProfile] = useState(null);
-  
-  // Avatar states
-  const [myAllyAvatar, setMyAllyAvatar] = useState(null);
-  const [userAvatar, setUserAvatar] = useState(null);
+  const [sessionId, setSessionId] = useState(cachedChats?.session_id || null);
+  const [userEmail, setUserEmail] = useState(auth.currentUser?.email || cachedProfile?.email || '');
+  // Profile loaded from cache immediately — updates in background from API
+  const [userProfile, setUserProfile] = useState(cachedProfile || null);
+  const [myAllyAvatar, setMyAllyAvatar] = useState(cachedProfile?.bot_avatar_url || null);
+  const [userAvatar, setUserAvatar] = useState(cachedProfile?.avatar_url || null);
 
   const chatContainerRef = useRef(null);
 
@@ -238,6 +253,8 @@ function ChatApp({ authToken, setAuthToken }) {
         if (profile.avatar_url) setUserAvatar(profile.avatar_url);
         if (profile.bot_avatar_url) setMyAllyAvatar(profile.bot_avatar_url);
         setUserProfile(profile);
+        // ✅ Save to cache so avatars load instantly on next visit
+        saveProfileCache(profile, uid);
       } catch (_) { /* non-critical */ }
     };
 
@@ -332,7 +349,10 @@ function ChatApp({ authToken, setAuthToken }) {
       if (res.ok) {
         const data = await res.json();
         setUserProfile(data.user);
+        // Keep profile cache in sync with latest changes
+        saveProfileCache(data.user, uid);
       }
+
     } catch (err) {
       console.error('Failed to save profile:', err);
     }
