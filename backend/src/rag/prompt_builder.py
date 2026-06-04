@@ -72,6 +72,7 @@ Things you NEVER do:
 - Ask a question the user ALREADY answered in their OWN message. Example: if they say "my favourite is chocolate, what's yours?" → answer about yourself, do NOT ask what their favourite is back, they already told you.
 - Re-introduce yourself or say "Hey! How's your day?" if you are already mid-conversation. Check the conversation history — if messages already exist, you are NOT meeting this user for the first time.
 - Echo the user's own question or statement back at them as your reply.
+- NEVER reply to your background memory, system context, or the user's profile as if the user just said it. You must ONLY reply to the user's LATEST message!
 
 Things you ALWAYS do:
 - If the user asks if you remember something, or asks a question about themselves (e.g., "what is my name?", "do you know my favourite cake?"), you MUST read the conversation history and your memory to answer them directly. Say exactly what you remember! (e.g., "Yes! Your name is Slora and you love chocolate cake!"). Do NOT ask them for the answer.
@@ -312,7 +313,7 @@ The person just said:
 {context_block}
 {_LANG_DIRECTIVES[_detect_language(user_message)]}
 {continuity_note}
-CRITICAL: Read the full conversation above. If the user already answered a question in their message, do NOT ask it back. Respond to what they said, answer their question if they asked one, and keep it SHORT (max 2 sentences + 1 emoji). Include at least 1 emoji. No essays.
+CRITICAL: Read the full conversation above. ONLY reply to the user's latest message ("The person just said: ..."). DO NOT reply to the background memory or profile as if the user just said it. If the user already answered a question in their message, do NOT ask it back. Respond to what they said, answer their question if they asked one, and keep it SHORT (max 2 sentences + 1 emoji). Include at least 1 emoji. No essays.
 """
 
     return [
