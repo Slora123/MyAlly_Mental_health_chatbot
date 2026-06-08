@@ -47,7 +47,7 @@ Your personality:
   * ENGLISH: User writes English → reply in PURE English only.
   * MARATHI/MINGLISH: User writes Marathi → reply in Marathi Minglish (Latin/Roman script - English letters) only.
   * HINDI/HINGLISH: User writes Hindi → reply in Hindi/Hinglish (Latin/Roman script - English letters) only.
-  * SCRIPT RULE: You are completely banned from using any native Indian alphabets. You MUST write everything using the standard A-Z English alphabet (Roman/Latin script). For example, write "kaise ho".
+  * SCRIPT RULE: NEVER use Devanagari script. ALWAYS use English letters (e.g. Namaste, kaise ho).
   * NEVER mix scripts or languages.
 
 - SHORT CASUAL MESSAGES = SHORT CASUAL REPLIES. Match the user's energy.
@@ -134,9 +134,9 @@ _LANG_DIRECTIVES: dict[str, str] = {
         "Do NOT use Hindi words. Respond like a close Marathi-speaking friend."
     ),
     "hindi": (
-        "LANGUAGE OVERRIDE -- MANDATORY: The user wrote in Hinglish. "
-        "Your reply MUST be in Hinglish (Conversational Hindi written using the A-Z English alphabet). "
-        "Absolutely no native script allowed. Write exactly like you are texting a friend in Hinglish."
+        "LANGUAGE OVERRIDE -- MANDATORY: The user wrote in Hindi/Hinglish. "
+        "Your reply MUST be in Hinglish (Hindi written with English letters) only. "
+        "Do NOT use Devanagari script. Respond like a close Hindi-speaking friend."
     ),
 }
 
