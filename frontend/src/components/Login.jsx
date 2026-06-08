@@ -68,14 +68,12 @@ export default function Login({ setAuthToken }) {
             navigate('/chat');
             return;
           } else {
-            alert("Account not found! Please click 'Create Account' to register.");
-            try {
-              await deleteUser(result.user);
-            } catch (e) {
-              console.error("Could not delete auto-created user:", e);
-              await signOut(auth);
-            }
-            setIsLoggingIn(false);
+            alert("Account not found! Redirecting to create account...");
+            sessionStorage.setItem('myally_token', token);
+            sessionStorage.setItem('myally_explicit_login', 'true');
+            localStorage.setItem('myally_token', token);
+            setAuthToken(token);
+            navigate('/onboarding');
             return;
           }
         }
