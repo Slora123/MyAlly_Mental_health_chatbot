@@ -162,10 +162,10 @@ def evaluate_crisis_severity(client, user_message: str, history: list) -> tuple[
     system_prompt = (
         "You are a crisis evaluation system. A user has triggered a high-risk keyword. "
         "Review their recent chat history and the latest message.\n"
-        "1) If the user is genuinely expressing persistent or continuous extreme stress or suicidal intent, "
-        "reply with 'ESCALATE', followed by double newline, followed by a short 2-3 sentence summary of the crisis directly quoting the user context.\n"
-        "2) If the user appears to be joking, playing around, testing the bot, or not in genuine extreme distress, "
-        "reply with 'IGNORE'.\n"
+        "1) If the user is explicitly stating they are going to commit suicide (e.g. 'i am suiciding', 'i want to die'), or genuinely expressing extreme stress/self-harm, "
+        "you MUST reply with 'ESCALATE', followed by double newline, followed by a short summary quoting the user context.\n"
+        "2) If the user is clearly just joking or discussing a movie/book, reply with 'IGNORE'.\n"
+        "NOTE: Err on the side of caution. If they explicitly state suicide intent like 'i am suiciding', you MUST ESCALATE even if they might be testing you.\n"
     )
     
     history_text = ""
