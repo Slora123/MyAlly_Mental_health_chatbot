@@ -37,7 +37,7 @@ export default function CounselorDashboard() {
   };
 
   return (
-    <div className="admin-dashboard">
+    <div className={`admin-dashboard ${selectedAlert ? 'alert-active' : ''}`}>
       <div className="admin-sidebar glass">
         <div className="admin-header">
           <h1>Guardian Panel</h1>
@@ -73,7 +73,12 @@ export default function CounselorDashboard() {
         {selectedAlert ? (
           <div className="alert-detail glass">
             <div className="detail-header">
-              <h2>Crisis Details</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <button className="mobile-back-btn" onClick={() => setSelectedAlert(null)}>
+                  ←
+                </button>
+                <h2>Crisis Details</h2>
+              </div>
               <button className="resolve-btn" onClick={() => handleResolve(selectedAlert.id)}>
                 Mark as Handled
               </button>
