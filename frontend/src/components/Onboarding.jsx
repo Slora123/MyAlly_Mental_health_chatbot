@@ -39,7 +39,8 @@ export default function Onboarding({ authToken }) {
   return (
     <div className="onboarding-page" style={{ 
       background: 'linear-gradient(135deg, #f3e8ff 0%, #fce7f3 50%, #fff1f1 100%)',
-      minHeight: '100vh',
+      height: '100vh',
+      overflowY: 'auto',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
@@ -61,10 +62,12 @@ export default function Onboarding({ authToken }) {
         <style>{`
           @media (max-width: 600px) {
             .onboarding-page {
-              align-items: flex-start !important;
-              padding: 20px 15px !important;
+              display: block !important;
+              padding: 20px 15px 100px 15px !important;
+              height: 100dvh !important;
             }
             .onboarding-card {
+              margin: 0 auto !important;
               padding: 30px 20px !important;
               border-radius: 32px !important;
               height: auto !important;
