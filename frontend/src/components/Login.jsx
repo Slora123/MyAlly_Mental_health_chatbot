@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { signInWithPopup } from 'firebase/auth';
+import { signInWithPopup, signOut, deleteUser } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth, googleProvider } from '../firebase';
 import { loginMockup } from '../assets/images.js';
@@ -32,44 +32,50 @@ export default function Login({ setAuthToken }) {
         const token = await result.user.getIdToken();
         console.log('✅ [Login] Popup login successful for:', result.user.email);
 
-        sessionStorage.setItem('myally_token', token);
-        sessionStorage.setItem('myally_explicit_login', 'true');
-        localStorage.setItem('myally_token', token);
-        
-        // CRITICAL: Tell App.jsx we are logged in so the gatekeeper lets us through
-        setAuthToken(token);
+        const createdTime = new Date(result.user.metadata.creationTime).getTime();
+        const lastLoginTime = new Date(result.user.metadata.lastSignInTime).getTime();
+        const isBrandNewAccount = Math.abs(lastLoginTime - createdTime) < 5000; 
 
         if (role === 'admin') {
+          sessionStorage.setItem('myally_token', token);
+          sessionStorage.setItem('myally_explicit_login', 'true');
+          localStorage.setItem('myally_token', token);
+          setAuthToken(token);
           navigate('/admin');
           return;
         }
 
-        // FIREBASE METADATA CHECK: Bypass backend check for returning users
-        const createdTime = new Date(result.user.metadata.creationTime).getTime();
-        const lastLoginTime = new Date(result.user.metadata.lastSignInTime).getTime();
-        // If they just created the account, these times will be nearly identical
-        const isBrandNewAccount = Math.abs(lastLoginTime - createdTime) < 5000; 
-
         if (mode === 'create') {
           if (!isBrandNewAccount) {
-            // Returning user trying to create an account
             alert("You have already created an account! Please use 'Sign In with Google' instead.");
+            await signOut(auth);
             setIsLoggingIn(false);
             return;
           } else {
-            // Brand new user creating an account
+            sessionStorage.setItem('myally_token', token);
+            sessionStorage.setItem('myally_explicit_login', 'true');
+            localStorage.setItem('myally_token', token);
+            setAuthToken(token);
             navigate('/onboarding');
             return;
           }
         } else if (mode === 'signin') {
           if (!isBrandNewAccount) {
-            // Returning user signing in normally
+            sessionStorage.setItem('myally_token', token);
+            sessionStorage.setItem('myally_explicit_login', 'true');
+            localStorage.setItem('myally_token', token);
+            setAuthToken(token);
             navigate('/chat');
             return;
           } else {
-            // Brand new user who clicked "Sign in" instead of create
-            // We should still send them to onboarding since they are new
-            navigate('/onboarding');
+            alert("Account not found! Please click 'Create Account' to register.");
+            try {
+              await deleteUser(result.user);
+            } catch (e) {
+              console.error("Could not delete auto-created user:", e);
+              await signOut(auth);
+            }
+            setIsLoggingIn(false);
             return;
           }
         }
