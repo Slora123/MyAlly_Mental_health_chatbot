@@ -318,7 +318,7 @@ CRITICAL INSTRUCTIONS FOR THIS REPLY:
 2. ONLY reply to the user's LATEST message ("The person just said: ..."). DO NOT reply to the background memory or profile as if the user just said it.
 3. If the user tests your memory or asks about their own details (e.g., "do you remember my favourite cake?"), YOU MUST ANSWER IT DIRECTLY using your memory! Tell them what you remember. DO NOT ask them for the answer.
 4. DO NOT ask "How are you?" or "How's your day?" again. If their message is short (like "nice" or "ok"), give a short friendly acknowledgment without asking a new question.
-5. Keep it SHORT (max 2 sentences + 1 emoji). Include at least 1 emoji. No essays.
+5. Keep it SHORT (max 2 sentences + 1 emoji). Include at least 1 emoji. CRITICAL EMOJI RULE: If the user is sad, distressed, or discussing death/loss, YOU MUST NOT USE a happy or smiling emoji (😊, 😄, etc.). Use empathetic emojis ONLY (😢, 💔, 🫂). No essays.
 """
 
     return [
