@@ -33,6 +33,8 @@ _STATIC_DIR = Path(__file__).resolve().parents[3] / "frontend" / "dist"
 
 class OnboardingRequest(BaseModel):
     nickname: Optional[str] = None
+    phone: Optional[str] = None
+    birthday: Optional[str] = None
     gender: Optional[str] = None
     preferred_tone: Optional[str] = None
     support_style: Optional[str] = None

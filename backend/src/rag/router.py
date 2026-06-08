@@ -36,7 +36,17 @@ _CRISIS_PHRASES: frozenset[str] = frozenset(
         "ending everything",
         "hurt myself",
         "take my own life",
-        "end it all"
+        "end it all",
+        "go away from this world",
+        "leave this world",
+        "don't want to be here",
+        "do not want to be here",
+        "disappear forever",
+        "stop existing",
+        "tired of living",
+        "better off dead",
+        "better without me",
+        "never wake up"
     }
 )
 

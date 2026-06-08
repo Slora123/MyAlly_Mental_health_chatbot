@@ -202,8 +202,10 @@ export default function Login({ setAuthToken }) {
           
           @media (max-width: 900px) {
             .login-wrapper {
-              align-items: flex-start !important;
-              padding: 24px 16px 40px !important;
+              display: block !important;
+              height: 100dvh !important;
+              padding: 40px 20px 100px 20px !important;
+              overflow-y: auto !important;
             }
             .role-selection-card {
               flex-direction: column !important;
@@ -211,7 +213,7 @@ export default function Login({ setAuthToken }) {
               min-height: unset !important;
               width: 100% !important;
               max-width: 100% !important;
-              border-radius: 28px !important;
+              border-radius: 32px !important;
               overflow: visible !important;
               margin: 0 auto;
               box-shadow: 0 20px 60px -10px rgba(253, 29, 29, 0.1) !important;
