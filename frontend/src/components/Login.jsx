@@ -32,9 +32,17 @@ export default function Login({ setAuthToken }) {
         const token = await result.user.getIdToken();
         console.log('✅ [Login] Popup login successful for:', result.user.email);
 
-        const createdTime = new Date(result.user.metadata.creationTime).getTime();
-        const lastLoginTime = new Date(result.user.metadata.lastSignInTime).getTime();
-        const isBrandNewAccount = Math.abs(lastLoginTime - createdTime) < 5000; 
+        let hasProfile = false;
+        try {
+          const res = await apiFetch('/api/user/profile', { headers: { Authorization: `Bearer ${token}` }});
+          if (res.ok) {
+            const profile = await res.json();
+            // A completed profile must have a nickname (as per Onboarding form)
+            hasProfile = !!profile.nickname;
+          }
+        } catch (err) {
+          console.error("Failed to fetch profile", err);
+        }
 
         if (role === 'admin') {
           sessionStorage.setItem('myally_token', token);
@@ -46,7 +54,7 @@ export default function Login({ setAuthToken }) {
         }
 
         if (mode === 'create') {
-          if (!isBrandNewAccount) {
+          if (hasProfile) {
             alert("You have already created an account! Please use 'Sign In with Google' instead.");
             await signOut(auth);
             setIsLoggingIn(false);
@@ -60,7 +68,7 @@ export default function Login({ setAuthToken }) {
             return;
           }
         } else if (mode === 'signin') {
-          if (!isBrandNewAccount) {
+          if (hasProfile) {
             sessionStorage.setItem('myally_token', token);
             sessionStorage.setItem('myally_explicit_login', 'true');
             localStorage.setItem('myally_token', token);
